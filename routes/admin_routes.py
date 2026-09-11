@@ -106,7 +106,7 @@ def dashboard():
         FROM order_items oi
         JOIN products p ON oi.product_id = p.id
         LEFT JOIN categories c ON p.category_id = c.id
-        GROUP BY p.id
+        GROUP BY p.id, p.name, p.slug, c.name
         ORDER BY total_sold DESC LIMIT 5
     ''').fetchall()
 
