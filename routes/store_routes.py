@@ -3,6 +3,16 @@ import urllib.parse
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, abort
 from database import get_db, get_setting, generate_order_number
 
+def format_price(amount):
+    """Format price as Jordanian Dinar with 2 decimal places."""
+    if amount is None:
+        return ''
+    try:
+        val = float(amount)
+        return f"{val:.2f} د.أ"
+    except (ValueError, TypeError):
+        return str(amount)
+
 store_bp = Blueprint('store', __name__)
 
 @store_bp.route('/')
@@ -371,19 +381,18 @@ def checkout():
     has_out_of_stock = False
 
     for key, item in list(cart.items()):
-        prod = conn.execute('''
-            SELECT p.*,
-                   (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY is_primary DESC, sort_order ASC LIMIT 1) as primary_image
-            FROM products p WHERE p.id = ? AND p.is_published = 1
-        ''', (item['product_id'],)).fetchone()
+        prod = conn.execute(
+            "SELECT p.*, (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY is_primary DESC, sort_order ASC LIMIT 1) as primary_image FROM products p WHERE p.id = ? AND p.is_published = 1",
+            (item['product_id'],)
+        ).fetchone()
 
         if not prod:
             continue
 
-        var_row = conn.execute('''
-            SELECT stock_quantity FROM product_variants
-            WHERE product_id = ? AND color_name = ? AND size_name = ?
-        ''', (item['product_id'], item['color'], item['size'])).fetchone()
+        var_row = conn.execute(
+            "SELECT stock_quantity FROM product_variants WHERE product_id = ? AND color_name = ? AND size_name = ?",
+            (item['product_id'], item['color'], item['size'])
+        ).fetchone()
 
         current_stock = var_row['stock_quantity'] if var_row else 0
         if current_stock < item['quantity']:
@@ -442,10 +451,10 @@ def checkout():
 
         # Check stock again before finalizing
         for item in cart_items:
-            var_row = conn.execute('''
-                SELECT stock_quantity FROM product_variants
-                WHERE product_id = ? AND color_name = ? AND size_name = ?
-            ''', (item['product_id'], item['color'], item['size'])).fetchone()
+            var_row = conn.execute(
+                "SELECT stock_quantity FROM product_variants WHERE product_id = ? AND color_name = ? AND size_name = ?",
+                (item['product_id'], item['color'], item['size'])
+            ).fetchone()
             
             if not var_row or var_row['stock_quantity'] < item['quantity']:
                 flash(f"عذراً، المقاس {item['size']} واللون {item['color']} من {item['name']} غير متوفر بالكمية المطلوبة.", 'danger')
@@ -453,7 +462,10 @@ def checkout():
                 return redirect(url_for('store.cart_page'))
 
         # Delivery zone fee
-        zone = conn.execute("SELECT * FROM delivery_zones WHERE id = ?", (governorate_id,)).fetchone()
+        zone = conn.execute(
+            "SELECT * FROM delivery_zones WHERE id = ?",
+            (governorate_id,)
+        ).fetchone()
         delivery_fee = float(zone['fee']) if zone else 2.0
         gov_name = zone['governorate_name'] if zone else 'السلط'
 
@@ -468,66 +480,69 @@ def checkout():
         # Customer identification or registration
         customer_id = session.get('customer_user', {}).get('id')
         if not customer_id:
-            cust_row = conn.execute("SELECT id FROM customers WHERE phone = ?", (clean_phone,)).fetchone()
+            cust_row = conn.execute(
+                "SELECT id FROM customers WHERE phone = ?",
+                (clean_phone,)
+            ).fetchone()
             if cust_row:
                 customer_id = cust_row['id']
             else:
                 cust_cur = conn.cursor()
-                cust_cur.execute('''
-                    INSERT INTO customers (name, phone, governorate, city, address)
-                    VALUES (?, ?, ?, ?, ?)
-                ''', (full_name, clean_phone, gov_name, city, address))
+                cust_cur.execute(
+                    "INSERT INTO customers (name, phone, governorate, city, address) VALUES (?, ?, ?, ?, ?)",
+                    (full_name, clean_phone, gov_name, city, address)
+                )
                 customer_id = cust_cur.lastrowid
 
         # Insert Order
         cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO orders (
-                order_number, customer_id, customer_name, customer_phone,
-                customer_governorate, customer_city, customer_address, notes,
-                subtotal, discount_amount, coupon_code, delivery_fee, total_amount,
-                payment_method, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            order_number, customer_id, full_name, clean_phone,
-            gov_name, city, address, notes,
-            subtotal, discount_amount, coupon_data['code'] if coupon_data else None,
-            delivery_fee, total_amount, 'cash_on_delivery', 'new'
-        ))
+        cursor.execute(
+            "INSERT INTO orders (order_number, customer_id, customer_name, customer_phone, customer_governorate, customer_city, customer_address, notes, subtotal, discount_amount, coupon_code, delivery_fee, total_amount, payment_method, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                order_number, customer_id, full_name, clean_phone,
+                gov_name, city, address, notes,
+                subtotal, discount_amount, coupon_data['code'] if coupon_data else None,
+                delivery_fee, total_amount, 'cash_on_delivery', 'new'
+            )
+        )
         order_id = cursor.lastrowid
 
         # Insert Order Items & Deduct Inventory Stock
         for item in cart_items:
-            cursor.execute('''
-                INSERT INTO order_items (
-                    order_id, product_id, product_name, color_name, size_name,
-                    unit_price, quantity, total_price, product_image
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                order_id,
-                item['product_id'],
-                item['name'],
-                item['color'],
-                item['size'],
-                item['price'],
-                item['quantity'],
-                item['item_total'],
-                item['image']
-            ))
+            cursor.execute(
+                "INSERT INTO order_items (order_id, product_id, product_name, color_name, size_name, unit_price, quantity, total_price, product_image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    order_id,
+                    item['product_id'],
+                    item['name'],
+                    item['color'],
+                    item['size'],
+                    item['price'],
+                    item['quantity'],
+                    item['item_total'],
+                    item['image']
+                )
+            )
 
             # Deduct stock
-            cursor.execute('''
-                UPDATE product_variants
-                SET stock_quantity = MAX(0, stock_quantity - ?)
-                WHERE product_id = ? AND color_name = ? AND size_name = ?
-            ''', (item['quantity'], item['product_id'], item['color'], item['size']))
+            cursor.execute(
+                "UPDATE product_variants SET stock_quantity = MAX(0, stock_quantity - ?) WHERE product_id = ? AND color_name = ? AND size_name = ?",
+                (item['quantity'], item['product_id'], item['color'], item['size'])
+            )
 
         # Update coupon usage count if used
         if coupon_data:
-            cursor.execute('''
-                UPDATE coupons SET used_count = used_count + 1 WHERE code = ?
-            ''', (coupon_data['code'],))
+            cursor.execute(
+                "UPDATE coupons SET used_count = used_count + 1 WHERE code = ?",
+                (coupon_data['code'],)
+            )
 
+        # Fetch order items from database
+        items = cursor.execute(
+            "SELECT * FROM order_items WHERE order_id = ?",
+            (order_id,)
+        ).fetchall()
+        
         conn.commit()
         conn.close()
 
@@ -535,7 +550,53 @@ def checkout():
         session.pop('cart', None)
         session.pop('applied_coupon', None)
 
-        return redirect(url_for('store.order_confirmation', order_number=order_number))
+        # Send order details to WhatsApp
+        whatsapp_num = get_setting('whatsapp', '+962796667505').replace('+', '').replace(' ', '')
+
+        # Build detailed WhatsApp message
+        wa_message = f"طلب جديد من متجر وَقّار#{order_number}%0A%0A"
+        wa_message += f"العميل: {full_name}%0A"
+        wa_message += f"الهاتف: {clean_phone}%0A"
+        wa_message += f"المحافظة: {gov_name}%0A"
+        wa_message += f"المدينة: {city}%0A"
+        wa_message += f"العنوان: {address}%0A"
+
+        if notes:
+            wa_message += f"ملاحظات العميل: {notes}%0A"
+
+        wa_message += f"%0Aالمنتجات:%0A"
+
+        for item in cart_items:
+            wa_message += f"- {item['name']} ({item['color']}، مقاس {item['size']}) × {item['quantity']} = {format_price(item['item_total'])}%0A"
+
+        wa_message += f"%0Aالمجموع الفرعي: {format_price(subtotal)}%0A"
+
+        if discount_amount > 0:
+            wa_message += f"الخصم: {format_price(discount_amount)}%0A"
+
+        wa_message += f"رسوم التوصيل: {format_price(delivery_fee)}%0A"
+        wa_message += f"المجموع الكلي: {format_price(total_amount)}%0A"
+        wa_message += f"%0Aيرجى تأكيد الطلب وتجهيزه للتوصيل."
+
+        whatsapp_url = f"https://wa.me/{whatsapp_num}?text={wa_message}"
+
+        # Create order dictionary for template
+        order = {
+            'order_number': order_number,
+            'customer_name': full_name,
+            'customer_phone': clean_phone,
+            'customer_governorate': gov_name,
+            'customer_city': city,
+            'customer_address': address,
+            'notes': notes,
+            'subtotal': subtotal,
+            'discount_amount': discount_amount,
+            'delivery_fee': delivery_fee,
+            'total_amount': total_amount
+        }
+
+        # Redirect directly to WhatsApp for immediate communication
+        return redirect(whatsapp_url)
 
     conn.close()
     return render_template(
