@@ -526,7 +526,7 @@ def checkout():
 
             # Deduct stock
             cursor.execute(
-                "UPDATE product_variants SET stock_quantity = MAX(0, stock_quantity - ?) WHERE product_id = ? AND color_name = ? AND size_name = ?",
+                "UPDATE product_variants SET stock_quantity = GREATEST(0, stock_quantity - ?) WHERE product_id = ? AND color_name = ? AND size_name = ?",
                 (item['quantity'], item['product_id'], item['color'], item['size'])
             )
 
