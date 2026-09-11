@@ -1,0 +1,120 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}محرر الصفحة الرئيسية | لوحة تحكم وَقّار{% endblock %}
+{% block header_title %}تعديل نصوص وبانرات الصفحة الرئيسية{% endblock %}
+
+{% block admin_content %}
+<form action="{{ url_for('admin.homepage_editor') }}" method="POST" enctype="multipart/form-data" class="space-y-8 max-w-4xl mx-auto">
+  
+  <div class="flex items-center justify-between bg-[#121217] border border-zinc-800 rounded-2xl p-4 sm:p-5">
+    <div>
+      <h1 class="text-lg font-bold text-zinc-100">تخصيص محتوى الواجهة الرئيسية</h1>
+      <p class="text-xs text-zinc-400">تحكم بالبانر الرئيسي، العناوين، الأزرار، والرسائل الترويجية بدون كود</p>
+    </div>
+    <button type="submit" class="gold-gradient-bg text-black font-black text-xs px-6 py-2.5 rounded-xl hover:opacity-90 transition shadow-lg gold-glow flex items-center gap-1.5">
+      <i class="fas fa-save"></i>
+      <span>حفظ التغييرات</span>
+    </button>
+  </div>
+
+  <!-- Announcement Bar -->
+  <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-4">
+    <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider pb-2 border-b border-zinc-800">شريط الإعلانات العلوي</h2>
+    <div>
+      <label class="block text-xs font-bold text-zinc-300 mb-1.5">نص الشريط المتحرك في أعلى الموقع</label>
+      <input type="text" name="announcement_bar" value="{{ settings.get('announcement_bar', '') }}" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-2.5 text-xs text-zinc-100 focus:outline-none focus:border-amber-400">
+    </div>
+  </div>
+
+  <!-- Hero Section -->
+  <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-4">
+    <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider pb-2 border-b border-zinc-800">القسم الرئيسي للواجهة (Hero Section)</h2>
+
+    <div>
+      <label class="block text-xs font-bold text-zinc-300 mb-1.5">العنوان الرئيسي الفاخر *</label>
+      <input type="text" name="hero_title" value="{{ settings.get('hero_title', 'أناقتك تبدأ من وَقّار') }}" required class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-100 font-bold focus:outline-none focus:border-amber-400">
+    </div>
+
+    <div>
+      <label class="block text-xs font-bold text-zinc-300 mb-1.5">العنوان الفرعي الوصفي</label>
+      <textarea name="hero_subtitle" rows="2" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-2.5 text-xs text-zinc-100 focus:outline-none focus:border-amber-400">{{ settings.get('hero_subtitle', '') }}</textarea>
+    </div>
+
+    <!-- Buttons -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+      <div class="p-3 bg-zinc-900/60 rounded-xl border border-zinc-800 space-y-2 text-xs">
+        <span class="font-bold text-amber-300 block">الزر الأول:</span>
+        <input type="text" name="hero_btn1_text" value="{{ settings.get('hero_btn1_text', 'تسوق الآن') }}" placeholder="نص الزر" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-zinc-100">
+        <input type="text" name="hero_btn1_url" value="{{ settings.get('hero_btn1_url', '/shop') }}" placeholder="رابط الزر" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-zinc-400 font-mono" dir="ltr">
+      </div>
+
+      <div class="p-3 bg-zinc-900/60 rounded-xl border border-zinc-800 space-y-2 text-xs">
+        <span class="font-bold text-amber-300 block">الزر الثاني:</span>
+        <input type="text" name="hero_btn2_text" value="{{ settings.get('hero_btn2_text', 'وصل حديثاً') }}" placeholder="نص الزر" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-zinc-100">
+        <input type="text" name="hero_btn2_url" value="{{ settings.get('hero_btn2_url', '/shop?filter=new') }}" placeholder="رابط الزر" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-zinc-400 font-mono" dir="ltr">
+      </div>
+    </div>
+
+    <!-- Hero Image -->
+    <div class="pt-2">
+      <label class="block text-xs font-bold text-zinc-300 mb-1.5">صورة البانر الرئيسي</label>
+      {% if settings.get('hero_image') %}
+        <div class="mb-3 w-48 aspect-video rounded-lg overflow-hidden border border-zinc-700 bg-zinc-900">
+          <img src="{{ settings.get('hero_image') }}" class="w-full h-full object-cover">
+        </div>
+      {% endif %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <input type="file" name="hero_image_file" accept="image/*" class="text-xs text-zinc-400 file:ml-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-zinc-800 file:text-amber-400">
+        <input type="url" name="hero_image" value="{{ settings.get('hero_image', '') }}" placeholder="أو أدخل رابط URL للصورة" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-zinc-300 font-mono" dir="ltr">
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Benefits Section (Why Waqar) -->
+  <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-4">
+    <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider pb-2 border-b border-zinc-800">بطاقات "لماذا تتسوق من وَقّار؟" (4 بطاقات)</h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+      
+      <!-- Card 1 -->
+      <div class="p-4 bg-zinc-900/60 rounded-xl border border-zinc-800 space-y-2">
+        <span class="font-bold text-amber-300 block">البطاقة 1:</span>
+        <input type="text" name="why_waqar_1_title" value="{{ settings.get('why_waqar_1_title', 'تشكيلة رجالية عصرية') }}" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-zinc-100 font-bold">
+        <input type="text" name="why_waqar_1_desc" value="{{ settings.get('why_waqar_1_desc', 'أحدث صيحات الموضة والقصات الرجالية.') }}" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-zinc-300">
+      </div>
+
+      <!-- Card 2 -->
+      <div class="p-4 bg-zinc-900/60 rounded-xl border border-zinc-800 space-y-2">
+        <span class="font-bold text-amber-300 block">البطاقة 2:</span>
+        <input type="text" name="why_waqar_2_title" value="{{ settings.get('why_waqar_2_title', 'جودة مختارة') }}" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-zinc-100 font-bold">
+        <input type="text" name="why_waqar_2_desc" value="{{ settings.get('why_waqar_2_desc', 'أقمشة فاخرة وخياطة متقنة تدوم طويلاً.') }}" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-zinc-300">
+      </div>
+
+      <!-- Card 3 -->
+      <div class="p-4 bg-zinc-900/60 rounded-xl border border-zinc-800 space-y-2">
+        <span class="font-bold text-amber-300 block">البطاقة 3:</span>
+        <input type="text" name="why_waqar_3_title" value="{{ settings.get('why_waqar_3_title', 'طلب أونلاين بسهولة') }}" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-zinc-100 font-bold">
+        <input type="text" name="why_waqar_3_desc" value="{{ settings.get('why_waqar_3_desc', 'تجربة تسوق سهلة وسريعة مع الدفع عند الاستلام.') }}" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-zinc-300">
+      </div>
+
+      <!-- Card 4 -->
+      <div class="p-4 bg-zinc-900/60 rounded-xl border border-zinc-800 space-y-2">
+        <span class="font-bold text-amber-300 block">البطاقة 4:</span>
+        <input type="text" name="why_waqar_4_title" value="{{ settings.get('why_waqar_4_title', 'توصيل داخل الأردن') }}" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-zinc-100 font-bold">
+        <input type="text" name="why_waqar_4_desc" value="{{ settings.get('why_waqar_4_desc', 'شحن فوري في السلط وعمان وجميع محافظات المملكة.') }}" class="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-zinc-300">
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="text-left">
+    <button type="submit" class="gold-gradient-bg text-black font-black text-xs px-8 py-3 rounded-xl hover:opacity-90 transition shadow-lg gold-glow">
+      حفظ كافة التعديلات
+    </button>
+  </div>
+
+</form>
+{% endblock %}
+

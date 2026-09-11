@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}المتجر | ملابس رجالية فاخرة - متجر وَقّار{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  
+  <!-- Breadcrumb & Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-800 mb-8">
+    <div>
+      <div class="flex items-center gap-2 text-xs text-zinc-400 mb-1">
+        <a href="{{ url_for('store.index') }}" class="hover:text-amber-400">الرئيسية</a>
+        <span>/</span>
+        <span class="text-amber-400 font-semibold">متجر الملابس الرجالية</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-black text-zinc-100">
+        {% if current_category %}
+          {% for c in categories if c.slug == current_category %}{{ c.name }}{% endfor %}
+        {% elif filter_type == 'new' %}
+          وصل حديثاً
+        {% elif filter_type == 'offer' %}
+          عروض وخصومات وَقّار
+        {% elif filter_type == 'best' %}
+          الأكثر مبيعاً
+        {% elif search_query %}
+          نتائج البحث عن: "{{ search_query }}"
+        {% else %}
+          جميع الملابس الرجالية
+        {% endif %}
+      </h1>
+      <p class="text-xs text-zinc-400 mt-1">يتم عرض ({{ products|length }}) منتجاً رجالياً متوفراً</p>
+    </div>
+
+    <!-- Sorting Dropdown -->
+    <div class="flex items-center gap-3">
+      <label for="sort-select" class="text-xs font-semibold text-zinc-400 whitespace-nowrap">ترتيب حسب:</label>
+      <form id="sort-form" method="GET" action="{{ url_for('store.shop') }}" class="inline">
+        {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+        {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+        {% if filter_type %}<input type="hidden" name="filter" value="{{ filter_type }}">{% endif %}
+        {% if selected_size %}<input type="hidden" name="size" value="{{ selected_size }}">{% endif %}
+        {% if selected_color %}<input type="hidden" name="color" value="{{ selected_color }}">{% endif %}
+        {% if in_stock_only %}<input type="hidden" name="in_stock" value="1">{% endif %}
+
+        <select id="sort-select" name="sort" onchange="this.form.submit()" class="bg-zinc-900 border border-zinc-700 text-xs font-bold text-zinc-100 rounded-lg px-3 py-2 focus:outline-none focus:border-amber-400">
+          <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>الأحدث</option>
+          <option value="bestseller" {% if sort_by == 'bestseller' %}selected{% endif %}>الأكثر مبيعاً</option>
+          <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>السعر: من الأقل للأعلى</option>
+          <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>السعر: من الأعلى للأقل</option>
+        </select>
+      </form>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    
+    <!-- Sidebar Filters (Desktop & Collapsible Mobile) -->
+    <div class="lg:col-span-1">
+      <form action="{{ url_for('store.shop') }}" method="GET" class="bg-[#121217] border border-zinc-800 rounded-2xl p-5 space-y-6">
+        
+        <!-- Search input in sidebar -->
+        <div>
+          <label class="block text-xs font-bold text-amber-400 mb-2 uppercase">البحث</label>
+          <div class="relative">
+            <input type="text" name="q" value="{{ search_query }}" placeholder="ابحث بالاسم أو الخامة..." class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-amber-400">
+            <button type="submit" class="absolute left-2.5 top-2 text-zinc-400 hover:text-amber-400 text-xs">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Categories List -->
+        <div>
+          <label class="block text-xs font-bold text-amber-400 mb-2 uppercase">التصنيفات الرجالية</label>
+          <div class="flex flex-col gap-1.5 max-h-56 overflow-y-auto pr-1">
+            <a href="{{ url_for('store.shop') }}" class="text-xs py-1 px-2 rounded flex items-center justify-between {% if not current_category %}bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30{% else %}text-zinc-300 hover:bg-zinc-800/80{% endif %}">
+              <span>جميع التصنيفات</span>
+            </a>
+            {% for cat in categories %}
+              <a href="{{ url_for('store.shop', category=cat.slug, sort=sort_by) }}" class="text-xs py-1 px-2 rounded flex items-center justify-between {% if current_category == cat.slug %}bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30{% else %}text-zinc-300 hover:bg-zinc-800/80{% endif %}">
+                <span>{{ cat.name }}</span>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Sizes Filter -->
+        {% if all_sizes %}
+        <div>
+          <label class="block text-xs font-bold text-amber-400 mb-2 uppercase">المقاس</label>
+          <div class="flex flex-wrap gap-1.5">
+            {% for sz in all_sizes %}
+              <a href="{{ url_for('store.shop', category=current_category, q=search_query, filter=filter_type, size=sz.size_name if selected_size != sz.size_name else '', color=selected_color, sort=sort_by) }}" class="text-xs px-2.5 py-1 rounded border transition {% if selected_size == sz.size_name %}bg-amber-400 text-black font-black border-amber-400{% else %}bg-zinc-900 border-zinc-700 text-zinc-300 hover:border-amber-400{% endif %}">
+                {{ sz.size_name }}
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Colors Filter -->
+        {% if all_colors %}
+        <div>
+          <label class="block text-xs font-bold text-amber-400 mb-2 uppercase">اللون</label>
+          <div class="flex flex-wrap gap-2">
+            {% for col in all_colors %}
+              <a href="{{ url_for('store.shop', category=current_category, q=search_query, filter=filter_type, size=selected_size, color=col.color_name if selected_color != col.color_name else '', sort=sort_by) }}" class="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition {% if selected_color == col.color_name %}bg-zinc-800 border-amber-400 text-amber-300 font-bold{% else %}bg-zinc-900 border-zinc-700 text-zinc-300 hover:border-zinc-500{% endif %}" title="{{ col.color_name }}">
+                <span class="w-3 h-3 rounded-full border border-white/20" style="background-color: {{ col.color_hex }};"></span>
+                <span>{{ col.color_name }}</span>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Price Range -->
+        <div>
+          <label class="block text-xs font-bold text-amber-400 mb-2 uppercase">السعر (د.أ)</label>
+          <div class="flex items-center gap-2">
+            <input type="number" name="min_price" value="{{ min_price or '' }}" placeholder="من" class="w-1/2 bg-zinc-900 border border-zinc-700 rounded px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-amber-400 text-center">
+            <span class="text-zinc-500">-</span>
+            <input type="number" name="max_price" value="{{ max_price or '' }}" placeholder="إلى" class="w-1/2 bg-zinc-900 border border-zinc-700 rounded px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-amber-400 text-center">
+          </div>
+        </div>
+
+        <!-- Availability Toggle -->
+        <div>
+          <label class="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer">
+            <input type="checkbox" name="in_stock" value="1" {% if in_stock_only %}checked{% endif %} class="rounded bg-zinc-900 border-zinc-700 text-amber-500 focus:ring-0">
+            <span>المنتجات المتوفرة فقط بالمخزون</span>
+          </label>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="pt-2 flex gap-2">
+          <button type="submit" class="flex-1 gold-gradient-bg text-black font-bold text-xs py-2 rounded-lg hover:opacity-90 transition">
+            تطبيق الفلاتر
+          </button>
+          <a href="{{ url_for('store.shop') }}" class="px-3 py-2 bg-zinc-800 text-zinc-300 hover:text-white rounded-lg text-xs font-semibold transition text-center">
+            إعادة ضبط
+          </a>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Products Grid (4 Desktop, 3 Tablet, 2 Mobile) -->
+    <div class="lg:col-span-3">
+      {% if products %}
+        <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-5">
+          {% for prod in products %}
+            {% include 'components/product_card.html' %}
+          {% endfor %}
+        </div>
+      {% else %}
+        <!-- Empty state -->
+        <div class="p-16 text-center bg-[#121217] rounded-2xl border border-zinc-800/80 max-w-lg mx-auto my-8">
+          <div class="w-16 h-16 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-500 text-2xl mx-auto mb-4">
+            <i class="fas fa-search"></i>
+          </div>
+          <h3 class="text-lg font-bold text-zinc-200 mb-2">لا توجد منتجات حالياً</h3>
+          <p class="text-xs text-zinc-400 mb-6">لم نعثر على أي ملابس رجالية تطابق معايير البحث المحددة. جرب إزالة بعض الفلاتر.</p>
+          <a href="{{ url_for('store.shop') }}" class="inline-block gold-gradient-bg text-black text-xs font-bold px-6 py-2.5 rounded-lg hover:opacity-90 transition">
+            عرض جميع المنتجات
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+

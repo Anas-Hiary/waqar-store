@@ -1,0 +1,602 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} | متجر وَقّار للملابس الرجالية{% endblock %}
+
+{% block meta_description %}{{ product.description[:160] if product.description else product.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  
+  <!-- Breadcrumb -->
+  <div class="flex items-center gap-2 text-xs text-zinc-400 mb-6">
+    <a href="{{ url_for('store.index') }}" class="hover:text-amber-400">الرئيسية</a>
+    <span>/</span>
+    <a href="{{ url_for('store.shop') }}" class="hover:text-amber-400">المتجر</a>
+    {% if product.category_name %}
+      <span>/</span>
+      <a href="{{ url_for('store.shop', category=product.category_slug) }}" class="hover:text-amber-400">{{ product.category_name }}</a>
+    {% endif %}
+    <span>/</span>
+    <span class="text-amber-400 font-semibold truncate max-w-xs">{{ product.name }}</span>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+    
+    <!-- Image Gallery (5 cols desktop) -->
+    <div class="lg:col-span-6 flex flex-col-reverse sm:flex-row gap-4">
+      
+      <!-- Thumbnails -->
+      {% if images|length > 1 %}
+      <div class="flex sm:flex-col gap-3 overflow-x-auto sm:overflow-y-auto max-h-[500px] py-1">
+        {% for img in images %}
+          <button type="button" onclick="changeMainImage('{{ img.image_url }}', this)" class="thumbnail-btn w-16 sm:w-20 aspect-[3/4] rounded-lg overflow-hidden border-2 {% if loop.first %}border-amber-400{% else %}border-zinc-800 hover:border-zinc-600{% endif %} transition flex-shrink-0 bg-zinc-900">
+            <img src="{{ img.image_url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+          </button>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Main Image Display -->
+      <div class="flex-1 aspect-[3/4] rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 relative group shadow-2xl">
+        <img id="main-product-image" src="{{ images[0].image_url if images else url_for('static', filename='images/placeholder.svg') }}" alt="{{ product.name }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+        
+        <!-- Badges -->
+        <div class="absolute top-4 right-4 flex flex-col gap-1.5 z-10">
+          {% if product.discount_price and product.discount_price < product.base_price %}
+            {% set discount_pct = (((product.base_price - product.discount_price) / product.base_price) * 100)|round|int %}
+            <span class="bg-red-600 text-white text-xs font-black px-2.5 py-1 rounded shadow-lg">
+              خصم {{ discount_pct }}%
+            </span>
+          {% endif %}
+          {% if product.is_new %}
+            <span class="bg-amber-400 text-black text-xs font-black px-2.5 py-1 rounded shadow-lg">
+              وصل حديثاً
+            </span>
+          {% endif %}
+        </div>
+
+        <!-- Wishlist Toggle on details -->
+        <button type="button" onclick="toggleWishlist({{ product.id }}, this)" class="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-zinc-900/80 backdrop-blur border border-zinc-700 text-zinc-300 hover:text-amber-400 flex items-center justify-center text-lg transition shadow-lg" title="إضافة للمفضلة">
+          <i class="far fa-heart"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Product Options & Details (6 cols desktop) -->
+    <div class="lg:col-span-6 flex flex-col">
+      
+      <!-- Brand & Category -->
+      <div class="flex items-center justify-between gap-4 mb-2">
+        <span class="text-xs font-bold text-amber-400 uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-full">
+          {{ product.category_name or 'ملابس رجالية' }}
+        </span>
+        {% if product.sku %}
+          <span class="text-xs text-zinc-500">رمز المنتج: {{ product.sku }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Product Title -->
+      <h1 class="text-2xl sm:text-3xl font-black text-zinc-100 mb-3 leading-snug">
+        {{ product.name }}
+      </h1>
+
+      <!-- Rating overview -->
+      <div class="flex items-center gap-2 mb-4 pb-4 border-b border-zinc-800">
+        <div class="flex text-amber-400 text-sm">
+          {% for i in range(5) %}
+            <i class="fas fa-star {% if i < avg_rating %}text-amber-400{% else %}text-zinc-700{% endif %}"></i>
+          {% endfor %}
+        </div>
+        <span class="text-xs text-zinc-400">({{ reviews|length }} تقييم من العملاء)</span>
+      </div>
+
+      <!-- Pricing -->
+      <div class="flex items-baseline gap-3 mb-6">
+        <span class="text-3xl font-black text-amber-400">
+          {{ format_price(product.discount_price or product.base_price) }}
+        </span>
+        {% if product.discount_price and product.discount_price < product.base_price %}
+          <span class="text-lg text-zinc-500 line-through">
+            {{ format_price(product.base_price) }}
+          </span>
+          <span class="text-xs font-bold text-red-400 bg-red-950/40 border border-red-500/30 px-2 py-0.5 rounded">
+            وفر {{ format_price(product.base_price - product.discount_price) }}
+          </span>
+        {% endif %}
+      </div>
+
+      <!-- Color Selection -->
+      {% if colors %}
+      <div class="mb-6">
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-bold text-zinc-300">اللون المختار: <span id="selected-color-name" class="text-amber-400"></span></label>
+        </div>
+        <div class="flex flex-wrap gap-2.5" id="color-options-container">
+          {% for color_name, c_data in colors.items() %}
+            <button type="button" onclick="selectColor('{{ color_name }}', '{{ c_data.hex }}')" data-color="{{ color_name }}" class="color-btn flex items-center gap-2 px-3 py-1.5 rounded-lg border border-zinc-700 bg-zinc-900 text-xs text-zinc-200 hover:border-amber-400 transition">
+              <span class="w-3.5 h-3.5 rounded-full border border-white/20" style="background-color: {{ c_data.hex }};"></span>
+              <span>{{ color_name }}</span>
+            </button>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Size Selection & Size Guide Button -->
+      <div class="mb-6">
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-bold text-zinc-300">المقاس: <span id="selected-size-name" class="text-amber-400"></span></label>
+          <button type="button" onclick="openSizeGuideModal()" class="text-xs text-amber-400 hover:text-amber-300 underline flex items-center gap-1 font-semibold">
+            <i class="fas fa-ruler-horizontal text-[10px]"></i>
+            <span>دليل المقاسات</span>
+          </button>
+        </div>
+        <div class="flex flex-wrap gap-2" id="size-options-container">
+          <!-- Populated dynamically based on selected color via JS -->
+        </div>
+      </div>
+
+      <!-- Real-time Stock Indicator -->
+      <div class="mb-6 p-3 rounded-lg bg-zinc-900/80 border border-zinc-800 flex items-center justify-between text-xs">
+        <span class="text-zinc-400">حالة التوفر:</span>
+        <span id="stock-status-badge" class="font-bold text-zinc-400">يرجى اختيار اللون والمقاس</span>
+      </div>
+
+      <!-- Quantity & Order Actions -->
+      <div class="flex flex-col sm:flex-row items-stretch gap-3 mb-6">
+        
+        <!-- Quantity Stepper -->
+        <div class="flex items-center justify-between bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 w-full sm:w-32">
+          <button type="button" onclick="changeQty(-1)" class="text-zinc-400 hover:text-white p-1 text-base">
+            <i class="fas fa-minus"></i>
+          </button>
+          <span id="qty-display" class="font-bold text-sm text-zinc-100">1</span>
+          <button type="button" onclick="changeQty(1)" class="text-zinc-400 hover:text-white p-1 text-base">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+
+        <!-- Add to Cart Button -->
+        <button type="button" id="add-to-cart-btn" onclick="handleAddToCart()" class="flex-1 gold-gradient-bg text-black font-black text-sm py-3.5 px-6 rounded-xl hover:opacity-90 transition shadow-lg flex items-center justify-center gap-2">
+          <i class="fas fa-shopping-bag"></i>
+          <span>أضف للسلة</span>
+        </button>
+
+        <!-- Buy Now Instant Checkout -->
+        <button type="button" id="buy-now-btn" onclick="handleBuyNow()" class="flex-1 bg-zinc-800 border border-amber-500/50 hover:bg-zinc-700 text-amber-300 font-bold text-sm py-3.5 px-6 rounded-xl transition flex items-center justify-center gap-2">
+          <i class="fas fa-bolt text-xs"></i>
+          <span>اطلب الآن</span>
+        </button>
+
+      </div>
+
+      <!-- Contextual WhatsApp Order Button -->
+      <a id="whatsapp-product-btn" href="https://wa.me/{{ settings.get('whatsapp', '+962796667505')|replace('+', '')|replace(' ', '') }}" target="_blank" class="w-full bg-[#128C7E] hover:bg-[#075E54] text-white font-bold text-xs py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 mb-8 shadow">
+        <i class="fab fa-whatsapp text-base"></i>
+        <span>طلب سريع أو استفسار عبر واتساب</span>
+      </a>
+
+      <!-- Specifications Tabs / Details -->
+      <div class="border-t border-zinc-800 pt-6 space-y-4 text-xs">
+        
+        <!-- Description -->
+        {% if product.description %}
+        <div>
+          <h3 class="font-bold text-amber-400 mb-1.5 text-sm">وصف المنتج</h3>
+          <p class="text-zinc-300 leading-relaxed">{{ product.description }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Specs Grid -->
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          {% if product.material %}
+            <div class="p-3 rounded-lg bg-zinc-900 border border-zinc-800">
+              <span class="text-zinc-500 block mb-0.5">الخامة:</span>
+              <span class="font-semibold text-zinc-200">{{ product.material }}</span>
+            </div>
+          {% endif %}
+          {% if product.fit %}
+            <div class="p-3 rounded-lg bg-zinc-900 border border-zinc-800">
+              <span class="text-zinc-500 block mb-0.5">القصة:</span>
+              <span class="font-semibold text-zinc-200">{{ product.fit }}</span>
+            </div>
+          {% endif %}
+          {% if product.season %}
+            <div class="p-3 rounded-lg bg-zinc-900 border border-zinc-800">
+              <span class="text-zinc-500 block mb-0.5">الموسم:</span>
+              <span class="font-semibold text-zinc-200">{{ product.season }}</span>
+            </div>
+          {% endif %}
+          {% if product.care_instructions %}
+            <div class="p-3 rounded-lg bg-zinc-900 border border-zinc-800">
+              <span class="text-zinc-500 block mb-0.5">تعليمات الغسيل:</span>
+              <span class="font-semibold text-zinc-200">{{ product.care_instructions }}</span>
+            </div>
+          {% endif %}
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Reviews & Feedback Section -->
+  <div class="mt-16 pt-10 border-t border-zinc-800">
+    <div class="max-w-4xl mx-auto">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-black text-zinc-100">آراء وتقييمات العملاء</h2>
+          <p class="text-xs text-zinc-400 mt-1">تجارب حقيقية لعملاء متجر وَقّار</p>
+        </div>
+        <button type="button" onclick="document.getElementById('review-form-box').classList.toggle('hidden')" class="gold-gradient-bg text-black font-bold text-xs px-4 py-2 rounded-lg hover:opacity-90 transition">
+          أضف تقييمك
+        </button>
+      </div>
+
+      <!-- Add Review Form -->
+      <div id="review-form-box" class="bg-[#121217] border border-zinc-800 rounded-xl p-6 mb-8 hidden">
+        <h3 class="font-bold text-sm text-zinc-100 mb-4">اكتب رأيك في هذا المنتج</h3>
+        <form id="review-form" onsubmit="submitReview(event)" class="space-y-4 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-zinc-400 mb-1">الاسم الكامل *</label>
+              <input type="text" id="review-name" required class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-zinc-100 focus:outline-none focus:border-amber-400">
+            </div>
+            <div>
+              <label class="block text-zinc-400 mb-1">التقييم *</label>
+              <select id="review-rating" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-zinc-100 focus:outline-none focus:border-amber-400">
+                <option value="5">⭐⭐⭐⭐⭐ (5 نجوم - ممتاز)</option>
+                <option value="4">⭐⭐⭐⭐ (4 نجوم - جيد جداً)</option>
+                <option value="3">⭐⭐⭐ (3 نجوم - جيد)</option>
+                <option value="2">⭐⭐ (نجمتان - مقبول)</option>
+                <option value="1">⭐ (نجمة واحدة - غير راضٍ)</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-zinc-400 mb-1">التعليق والتجربة *</label>
+            <textarea id="review-comment" rows="3" required placeholder="كيف كانت الخامة والمقاس والتوصيل؟" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-zinc-100 focus:outline-none focus:border-amber-400"></textarea>
+          </div>
+          <button type="submit" class="gold-gradient-bg text-black font-bold px-6 py-2 rounded-lg hover:opacity-90 transition">
+            إرسال التقييم
+          </button>
+        </form>
+      </div>
+
+      <!-- Reviews List -->
+      {% if reviews %}
+        <div class="space-y-4">
+          {% for r in reviews %}
+            <div class="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-xs">
+                    {{ r.customer_name[0] }}
+                  </div>
+                  <span class="font-bold text-xs text-zinc-200">{{ r.customer_name }}</span>
+                </div>
+                <div class="flex text-amber-400 text-xs">
+                  {% for star in range(r.rating) %}★{% endfor %}
+                </div>
+              </div>
+              <p class="text-xs text-zinc-300 leading-relaxed">{{ r.comment }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-xs text-zinc-500 text-center py-6">لا توجد تقييمات منشورة بعد لهذا المنتج. كن أول من يقيّمه!</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Related Products (منتجات مشابهة) -->
+  {% if related_products %}
+  <div class="mt-16 pt-10 border-t border-zinc-800">
+    <div class="text-center mb-8">
+      <span class="text-xs font-bold text-amber-400 tracking-widest uppercase">قد يعجبك أيضاً</span>
+      <h2 class="text-xl sm:text-2xl font-black text-zinc-100 mt-1">منتجات مشابهة</h2>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-6">
+      {% for prod in related_products %}
+        {% include 'components/product_card.html' %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Size Guide Modal (دليل المقاسات) -->
+<div id="size-guide-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+  <div class="bg-[#121217] border border-zinc-800 rounded-2xl w-full max-w-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+    <button type="button" onclick="closeSizeGuideModal()" class="absolute top-4 left-4 text-zinc-400 hover:text-amber-400 text-xl">
+      <i class="fas fa-times"></i>
+    </button>
+    
+    <div class="flex items-center gap-2 mb-4">
+      <i class="fas fa-ruler-combined text-amber-400 text-xl"></i>
+      <h3 class="text-lg font-bold text-zinc-100">دليل مقاسات الملابس الرجالية في وَقّار</h3>
+    </div>
+    
+    <p class="text-xs text-zinc-400 mb-6 leading-relaxed">
+      للحصول على المقاس المثالي، يُرجى مقارنة مقاساتك مع الجداول الموضحة أدناه بالسنتيمتر (سم):
+    </p>
+
+    <!-- Size Table -->
+    <div class="overflow-x-auto text-xs">
+      <table class="w-full text-center border-collapse border border-zinc-800">
+        <thead>
+          <tr class="bg-zinc-900 text-amber-400 border-b border-zinc-800">
+            <th class="p-2.5 border border-zinc-800">المقاس القياسي</th>
+            <th class="p-2.5 border border-zinc-800">محيط الصدر (سم)</th>
+            <th class="p-2.5 border border-zinc-800">محيط الخصر (سم)</th>
+            <th class="p-2.5 border border-zinc-800">طول الكتف (سم)</th>
+            <th class="p-2.5 border border-zinc-800">مقاس البنطلون المقابل</th>
+          </tr>
+        </thead>
+        <tbody class="text-zinc-300 divide-y divide-zinc-800">
+          <tr>
+            <td class="p-2 font-bold text-amber-300 border border-zinc-800">S (Small)</td>
+            <td class="p-2 border border-zinc-800">92 - 96</td>
+            <td class="p-2 border border-zinc-800">76 - 80</td>
+            <td class="p-2 border border-zinc-800">42 - 43</td>
+            <td class="p-2 border border-zinc-800">29 - 30</td>
+          </tr>
+          <tr class="bg-zinc-900/40">
+            <td class="p-2 font-bold text-amber-300 border border-zinc-800">M (Medium)</td>
+            <td class="p-2 border border-zinc-800">97 - 102</td>
+            <td class="p-2 border border-zinc-800">81 - 86</td>
+            <td class="p-2 border border-zinc-800">44 - 45</td>
+            <td class="p-2 border border-zinc-800">31 - 32</td>
+          </tr>
+          <tr>
+            <td class="p-2 font-bold text-amber-300 border border-zinc-800">L (Large)</td>
+            <td class="p-2 border border-zinc-800">103 - 108</td>
+            <td class="p-2 border border-zinc-800">87 - 92</td>
+            <td class="p-2 border border-zinc-800">46 - 47</td>
+            <td class="p-2 border border-zinc-800">33 - 34</td>
+          </tr>
+          <tr class="bg-zinc-900/40">
+            <td class="p-2 font-bold text-amber-300 border border-zinc-800">XL (X-Large)</td>
+            <td class="p-2 border border-zinc-800">109 - 114</td>
+            <td class="p-2 border border-zinc-800">93 - 98</td>
+            <td class="p-2 border border-zinc-800">48 - 49</td>
+            <td class="p-2 border border-zinc-800">36 - 38</td>
+          </tr>
+          <tr>
+            <td class="p-2 font-bold text-amber-300 border border-zinc-800">XXL (2X-Large)</td>
+            <td class="p-2 border border-zinc-800">115 - 122</td>
+            <td class="p-2 border border-zinc-800">99 - 106</td>
+            <td class="p-2 border border-zinc-800">50 - 52</td>
+            <td class="p-2 border border-zinc-800">40 - 42</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-6 pt-4 border-t border-zinc-800 text-xs text-zinc-400 text-center">
+      إذا كنت محتاراً بين مقاسين، ننصحك باختيار المقاس الأكبر أو التواصل معنا عبر واتساب للمساعدة الفورية.
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Product Variants Matrix Data from Backend
+  const rawVariants = {{ variants_json|safe }};
+  const productId = {{ product.id }};
+  const productName = "{{ product.name }}";
+  const whatsappNumber = "{{ settings.get('whatsapp', '+962796667505') }}".replace('+', '').replace(' ', '');
+
+  let selectedColor = null;
+  let selectedSize = null;
+  let currentStock = 0;
+  let currentQty = 1;
+
+  // Change Gallery Main Image
+  function changeMainImage(url, btn) {
+    const mainImg = document.getElementById('main-product-image');
+    if (mainImg) mainImg.src = url;
+    document.querySelectorAll('.thumbnail-btn').forEach(b => {
+      b.classList.remove('border-amber-400');
+      b.classList.add('border-zinc-800');
+    });
+    if (btn) {
+      btn.classList.add('border-amber-400');
+      btn.classList.remove('border-zinc-800');
+    }
+  }
+
+  // Select Color
+  function selectColor(colorName, colorHex) {
+    selectedColor = colorName;
+    selectedSize = null; // Reset size on color change
+    
+    document.getElementById('selected-color-name').textContent = colorName;
+    
+    // Highlight button
+    document.querySelectorAll('.color-btn').forEach(b => {
+      if (b.dataset.color === colorName) {
+        b.classList.add('border-amber-400', 'bg-zinc-800');
+      } else {
+        b.classList.remove('border-amber-400', 'bg-zinc-800');
+      }
+    });
+
+    // Populate available sizes for this color
+    const sizeContainer = document.getElementById('size-options-container');
+    sizeContainer.innerHTML = '';
+
+    const matchingVariants = rawVariants.filter(v => v.color_name === colorName);
+    
+    matchingVariants.forEach(v => {
+      const isOut = v.stock === 0;
+      const sizeBtn = document.createElement('button');
+      sizeBtn.type = 'button';
+      sizeBtn.className = `size-btn text-xs px-3.5 py-1.5 rounded-lg border font-bold transition ${
+        isOut ? 'border-zinc-800 text-zinc-600 bg-zinc-950/60 line-through cursor-not-allowed' : 'border-zinc-700 bg-zinc-900 text-zinc-200 hover:border-amber-400'
+      }`;
+      sizeBtn.textContent = v.size_name;
+      sizeBtn.disabled = isOut;
+      sizeBtn.onclick = () => selectSize(v.size_name, v.stock);
+      sizeContainer.appendChild(sizeBtn);
+    });
+
+    // Auto-select first in-stock size if available
+    const firstAvailable = matchingVariants.find(v => v.stock > 0);
+    if (firstAvailable) {
+      selectSize(firstAvailable.size_name, firstAvailable.stock);
+    } else {
+      updateStockUI(0);
+    }
+
+    updateWhatsAppUrl();
+  }
+
+  // Select Size
+  function selectSize(sizeName, stock) {
+    selectedSize = sizeName;
+    currentStock = stock;
+    currentQty = 1;
+    document.getElementById('qty-display').textContent = '1';
+    document.getElementById('selected-size-name').textContent = sizeName;
+
+    // Highlight size button
+    document.querySelectorAll('.size-btn').forEach(b => {
+      if (b.textContent === sizeName && !b.disabled) {
+        b.classList.add('bg-amber-400', 'text-black', 'border-amber-400');
+        b.classList.remove('bg-zinc-900', 'text-zinc-200');
+      } else if (!b.disabled) {
+        b.classList.remove('bg-amber-400', 'text-black', 'border-amber-400');
+        b.classList.add('bg-zinc-900', 'text-zinc-200');
+      }
+    });
+
+    updateStockUI(stock);
+    updateWhatsAppUrl();
+  }
+
+  // Update Stock Indicator & Buttons
+  function updateStockUI(stock) {
+    const badge = document.getElementById('stock-status-badge');
+    const addBtn = document.getElementById('add-to-cart-btn');
+    const buyBtn = document.getElementById('buy-now-btn');
+
+    if (!selectedColor || !selectedSize) {
+      badge.className = 'font-bold text-zinc-400';
+      badge.textContent = 'يرجى اختيار اللون والمقاس';
+      addBtn.disabled = true;
+      buyBtn.disabled = true;
+    } else if (stock > 0) {
+      badge.className = 'font-bold text-green-400 flex items-center gap-1';
+      badge.innerHTML = `<i class="fas fa-check-circle"></i> متوفر في المخزون (${stock} قطع)`;
+      addBtn.disabled = false;
+      addBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      buyBtn.disabled = false;
+      buyBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+      badge.className = 'font-bold text-red-400 flex items-center gap-1';
+      badge.innerHTML = `<i class="fas fa-times-circle"></i> غير متوفر حالياً`;
+      addBtn.disabled = true;
+      addBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      buyBtn.disabled = true;
+      buyBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+  }
+
+  // Change Quantity
+  function changeQty(delta) {
+    const newQty = currentQty + delta;
+    if (newQty >= 1 && newQty <= (currentStock || 1)) {
+      currentQty = newQty;
+      document.getElementById('qty-display').textContent = currentQty;
+      updateWhatsAppUrl();
+    } else if (newQty > currentStock) {
+      showToast(`الحد الأقصى المتوفر بالمخزون هو ${currentStock} قطع.`, 'warning');
+    }
+  }
+
+  // Update WhatsApp Button Link
+  function updateWhatsAppUrl() {
+    const btn = document.getElementById('whatsapp-product-btn');
+    if (!btn) return;
+    
+    let msg = `مرحباً متجر وَقّار، أود الاستفسار/الطلب عن:%0A- المنتج: ${productName}`;
+    if (selectedColor) msg += `%0A- اللون: ${selectedColor}`;
+    if (selectedSize) msg += `%0A- المقاس: ${selectedSize}`;
+    msg += `%0A- الكمية: ${currentQty}`;
+    msg += `%0A- الرابط: ${window.location.href}`;
+
+    btn.href = `https://wa.me/${whatsappNumber}?text=${msg}`;
+  }
+
+  // Add to Cart Action
+  async function handleAddToCart() {
+    if (!selectedColor || !selectedSize) {
+      showToast('يرجى اختيار اللون والمقاس أولاً.', 'warning');
+      return;
+    }
+    await addToCart(productId, selectedColor, selectedSize, currentQty, true);
+  }
+
+  // Buy Now Action
+  async function handleBuyNow() {
+    if (!selectedColor || !selectedSize) {
+      showToast('يرجى اختيار اللون والمقاس أولاً.', 'warning');
+      return;
+    }
+    const added = await addToCart(productId, selectedColor, selectedSize, currentQty, false);
+    if (added) {
+      window.location.href = '/checkout';
+    }
+  }
+
+  // Size Guide Modal
+  function openSizeGuideModal() {
+    document.getElementById('size-guide-modal').classList.remove('hidden');
+  }
+  function closeSizeGuideModal() {
+    document.getElementById('size-guide-modal').classList.add('hidden');
+  }
+
+  // Submit Review Form
+  async function submitReview(e) {
+    e.preventDefault();
+    const name = document.getElementById('review-name').value.trim();
+    const rating = parseInt(document.getElementById('review-rating').value);
+    const comment = document.getElementById('review-comment').value.trim();
+
+    try {
+      const res = await fetch('/api/reviews/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: productId, name, rating, comment })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(data.message, 'success');
+        document.getElementById('review-form').reset();
+        document.getElementById('review-form-box').classList.add('hidden');
+      } else {
+        showToast(data.message, 'error');
+      }
+    } catch (err) {
+      showToast('حدث خطأ أثناء إرسال التقييم.', 'error');
+    }
+  }
+
+  // Init First Color on load
+  document.addEventListener('DOMContentLoaded', () => {
+    const firstColorBtn = document.querySelector('.color-btn');
+    if (firstColorBtn) {
+      firstColorBtn.click();
+    }
+  });
+</script>
+{% endblock %}
+

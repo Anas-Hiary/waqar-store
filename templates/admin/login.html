@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل دخول الإدارة | متجر وَقّار</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-[#09090c] text-zinc-100 min-h-screen flex items-center justify-center p-4 antialiased selection:bg-amber-500/30 selection:text-amber-200">
+
+  <div class="w-full max-w-md bg-[#121217] border border-zinc-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+    
+    <!-- Logo & Title -->
+    <div class="text-center mb-8">
+      <div class="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-black text-3xl mx-auto mb-4 shadow-xl">
+        وَ
+      </div>
+      <h1 class="text-2xl font-black gold-gradient-text">لوحة إدارة وَقّار</h1>
+      <p class="text-xs text-zinc-400 mt-1">سجل الدخول لإدارة المنتجات والمخزون والطلبات</p>
+    </div>
+
+    <!-- Error Alert -->
+    {% if error %}
+      <div class="p-3.5 rounded-xl bg-red-950/60 border border-red-500/50 text-red-200 text-xs mb-6 text-center">
+        <i class="fas fa-exclamation-circle ml-1"></i> {{ error }}
+      </div>
+    {% endif %}
+
+    <!-- Login Form -->
+    <form action="{{ url_for('admin.login') }}" method="POST" class="space-y-4 text-xs">
+      <div>
+        <label class="block text-zinc-300 font-bold mb-1.5">اسم المستخدم أو البريد *</label>
+        <div class="relative">
+          <input type="text" name="username" required placeholder="admin" value="admin" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs text-zinc-100 focus:outline-none focus:border-amber-400 font-mono" dir="ltr">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-zinc-300 font-bold mb-1.5">كلمة المرور *</label>
+        <div class="relative">
+          <input type="password" name="password" required placeholder="••••••••" value="admin123" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs text-zinc-100 focus:outline-none focus:border-amber-400 font-mono" dir="ltr">
+        </div>
+        <span class="text-[10px] text-zinc-500 mt-1 block">بيانات الدخول الافتراضية: admin / admin123</span>
+      </div>
+
+      <button type="submit" class="w-full gold-gradient-bg text-black font-black py-3.5 rounded-xl hover:opacity-90 transition text-xs shadow-xl gold-glow mt-4">
+        دخول لوحة التحكم
+      </button>
+    </form>
+
+    <div class="mt-8 pt-6 border-t border-zinc-800/80 text-center">
+      <a href="{{ url_for('store.index') }}" class="text-xs text-zinc-400 hover:text-amber-400 transition">
+        &larr; العودة إلى الموقع الرئيسي
+      </a>
+    </div>
+
+  </div>
+
+</body>
+</html>
+

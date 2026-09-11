@@ -1,0 +1,100 @@
+<div class="product-card waqar-card rounded-xl overflow-hidden flex flex-col group relative">
+  
+  <!-- Badges (Discount, New, Best Seller) -->
+  <div class="absolute top-2.5 right-2.5 z-20 flex flex-col gap-1.5 pointer-events-none">
+    {% if prod.discount_price and prod.discount_price < prod.base_price %}
+      {% set discount_pct = (((prod.base_price - prod.discount_price) / prod.base_price) * 100)|round|int %}
+      <span class="bg-red-600 text-white text-[10px] sm:text-xs font-black px-2 py-0.5 rounded shadow">
+        خصم {{ discount_pct }}%
+      </span>
+    {% endif %}
+    {% if prod.is_new %}
+      <span class="bg-amber-500 text-black text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded shadow">
+        جديد
+      </span>
+    {% endif %}
+    {% if prod.is_bestseller %}
+      <span class="bg-zinc-800 border border-amber-500/40 text-amber-300 text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shadow">
+        الأكثر مبيعاً
+      </span>
+    {% endif %}
+  </div>
+
+  <!-- Wishlist Heart Button -->
+  <button type="button" onclick="toggleWishlist({{ prod.id }}, this)" class="absolute top-2.5 left-2.5 z-20 w-8 h-8 rounded-full bg-zinc-900/80 backdrop-blur border border-zinc-700/80 text-zinc-300 hover:text-amber-400 flex items-center justify-center text-sm transition" title="إضافة للمفضلة">
+    <i class="far fa-heart"></i>
+  </button>
+
+  <!-- Product Image Container -->
+  <a href="{{ url_for('store.product_detail', slug=prod.slug) }}" class="product-img-container aspect-[3/4] block bg-zinc-900 relative">
+    <img src="{{ prod.primary_image or url_for('static', filename='images/placeholder.svg') }}" alt="{{ prod.name }}" class="w-full h-full object-cover" loading="lazy">
+    
+    <!-- Out of Stock Overlay -->
+    {% if prod.total_stock is defined and prod.total_stock == 0 %}
+      <div class="absolute inset-0 bg-black/75 flex items-center justify-center">
+        <span class="bg-zinc-900 border border-red-500 text-red-400 text-xs font-bold px-3 py-1 rounded-full">
+          نفد من المخزون
+        </span>
+      </div>
+    {% endif %}
+  </a>
+
+  <!-- Product Details -->
+  <div class="p-3 sm:p-4 flex-1 flex flex-col justify-between">
+    
+    <!-- Category & Colors -->
+    <div>
+      <div class="flex items-center justify-between gap-2 mb-1">
+        <span class="text-[11px] text-zinc-400">{{ prod.category_name or 'ملابس رجالية' }}</span>
+        
+        <!-- Color Dots Preview -->
+        {% if prod.colors_hex %}
+          <div class="flex items-center gap-1">
+            {% for hex in prod.colors_hex.split(',')[:4] %}
+              <span class="color-swatch-dot" style="background-color: {{ hex }};"></span>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Title -->
+      <a href="{{ url_for('store.product_detail', slug=prod.slug) }}" class="font-bold text-xs sm:text-sm text-zinc-100 group-hover:text-amber-400 transition line-clamp-1 mb-1.5 block">
+        {{ prod.name }}
+      </a>
+
+      <!-- Sizes List -->
+      {% if prod.sizes_list %}
+        <div class="flex flex-wrap gap-1 mb-2">
+          {% for sz in prod.sizes_list.split(',')[:4] %}
+            <span class="text-[9px] px-1 py-0.2 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded">
+              {{ sz }}
+            </span>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Price & Action -->
+    <div class="pt-2 border-t border-zinc-800/60 flex items-center justify-between mt-auto">
+      <div>
+        <div class="text-sm sm:text-base font-black text-amber-400">
+          {{ format_price(prod.discount_price or prod.base_price) }}
+        </div>
+        {% if prod.discount_price and prod.discount_price < prod.base_price %}
+          <div class="text-[10px] sm:text-xs text-zinc-400 line-through">
+            {{ format_price(prod.base_price) }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Detail / Add Button -->
+      <a href="{{ url_for('store.product_detail', slug=prod.slug) }}" class="bg-zinc-800 hover:bg-amber-400 hover:text-black text-zinc-200 text-xs font-bold px-3 py-1.5 rounded-lg transition border border-zinc-700 hover:border-amber-400 flex items-center gap-1">
+        <span>عرض</span>
+        <i class="fas fa-arrow-left text-[10px]"></i>
+      </a>
+    </div>
+
+  </div>
+
+</div>
+

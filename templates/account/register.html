@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}إنشاء حساب جديد | متجر وَقّار{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+  <div class="max-w-md mx-auto bg-[#121217] border border-zinc-800 rounded-3xl p-8 shadow-2xl">
+    
+    <div class="text-center mb-8">
+      <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center text-xl font-bold mx-auto mb-3">
+        <i class="fas fa-user-plus"></i>
+      </div>
+      <h1 class="text-2xl font-black text-zinc-100">إنشاء حساب جديد</h1>
+      <p class="text-xs text-zinc-400 mt-1">انضم لعملاء متجر وَقّار لمتابعة طلباتك بسهولة</p>
+    </div>
+
+    {% if error %}
+      <div class="p-3.5 rounded-xl bg-red-950/60 border border-red-500/50 text-red-200 text-xs mb-6 text-center">
+        {{ error }}
+      </div>
+    {% endif %}
+
+    <form action="{{ url_for('auth.register') }}" method="POST" class="space-y-4 text-xs">
+      <div>
+        <label class="block text-zinc-300 font-bold mb-1.5">الاسم الكامل *</label>
+        <input type="text" name="name" required placeholder="أدخل اسمك" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs text-zinc-100 focus:outline-none focus:border-amber-400">
+      </div>
+
+      <div>
+        <label class="block text-zinc-300 font-bold mb-1.5">رقم الهاتف *</label>
+        <input type="tel" name="phone" required placeholder="0796667505" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs text-zinc-100 focus:outline-none focus:border-amber-400" dir="ltr">
+      </div>
+
+      <div>
+        <label class="block text-zinc-300 font-bold mb-1.5">المحافظة</label>
+        <select name="governorate" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs text-zinc-100 focus:outline-none focus:border-amber-400">
+          <option value="السلط" selected>السلط</option>
+          <option value="عمّان">عمّان</option>
+          <option value="الزرقاء">الزرقاء</option>
+          <option value="إربد">إربد</option>
+          <option value="باقي المحافظات">باقي المحافظات</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-zinc-300 font-bold mb-1.5">المدينة / المنطقة</label>
+        <input type="text" name="city" placeholder="مثال: وسط البلد" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs text-zinc-100 focus:outline-none focus:border-amber-400">
+      </div>
+
+      <div>
+        <label class="block text-zinc-300 font-bold mb-1.5">العنوان بالتفصيل</label>
+        <input type="text" name="address" placeholder="اسم الشارع ورقم المبنى" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs text-zinc-100 focus:outline-none focus:border-amber-400">
+      </div>
+
+      <div>
+        <label class="block text-zinc-300 font-bold mb-1.5">كلمة المرور (6 خانات على الأقل) *</label>
+        <input type="password" name="password" required minlength="6" placeholder="••••••••" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs text-zinc-100 focus:outline-none focus:border-amber-400" dir="ltr">
+      </div>
+
+      <button type="submit" class="w-full gold-gradient-bg text-black font-black py-3.5 rounded-xl hover:opacity-90 transition text-xs shadow-lg mt-2">
+        إنشاء الحساب
+      </button>
+    </form>
+
+    <div class="mt-8 pt-6 border-t border-zinc-800 text-center text-xs text-zinc-400">
+      <span>لديك حساب بالفعل؟</span>
+      <a href="{{ url_for('auth.login') }}" class="text-amber-400 font-bold hover:underline mr-1">تسجيل الدخول</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+

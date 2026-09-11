@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+
+{% block title %}وَقّار | أناقتك تبدأ من وَقّار - ملابس رجالية في السلط والأردن{% endblock %}
+
+{% block content %}
+
+<!-- 1. Hero Section -->
+<section class="relative min-h-[580px] lg:min-h-[660px] flex items-center justify-center overflow-hidden border-b border-zinc-800">
+  <!-- Background Image with Gradient Overlay -->
+  <div class="absolute inset-0 z-0">
+    <img src="{{ settings.get('hero_image', 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?auto=format&fit=crop&w=1600&q=80') }}" alt="وَقّار للأزياء الرجالية" class="w-full h-full object-cover object-center scale-105 transform">
+    <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/80 to-[#0a0a0c]/40"></div>
+    <div class="absolute inset-0 bg-radial-at-c from-transparent via-[#0a0a0c]/60 to-[#0a0a0c]"></div>
+  </div>
+
+  <!-- Hero Content -->
+  <div class="container mx-auto px-4 relative z-10 text-center py-20">
+    <div class="inline-flex items-center gap-2 bg-zinc-900/90 border border-amber-500/40 px-4 py-1.5 rounded-full text-xs font-bold text-amber-300 mb-6 shadow-xl backdrop-blur-sm">
+      <i class="fas fa-crown text-amber-400"></i>
+      <span>الأزياء والملابس الرجالية الفاخرة | السلط - الأردن</span>
+    </div>
+
+    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black text-zinc-100 tracking-tight leading-tight max-w-4xl mx-auto mb-6">
+      {{ settings.get('hero_title', 'أناقتك تبدأ من وَقّار') }}
+    </h1>
+
+    <p class="text-base sm:text-xl text-zinc-300 font-normal max-w-2xl mx-auto mb-10 leading-relaxed">
+      {{ settings.get('hero_subtitle', 'اكتشف أحدث تشكيلات الأزياء الرجالية الفاخرة - تصاميم عصرية بجودة استثنائية') }}
+    </p>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-wrap items-center justify-center gap-4">
+      <a href="{{ settings.get('hero_btn1_url', '/shop') }}" class="gold-gradient-bg text-black font-black px-8 py-4 rounded-xl text-sm sm:text-base hover:opacity-90 shadow-xl gold-glow transition transform hover:-translate-y-0.5 flex items-center gap-2">
+        <i class="fas fa-shopping-bag text-sm"></i>
+        <span>{{ settings.get('hero_btn1_text', 'تسوق الآن') }}</span>
+      </a>
+      <a href="{{ settings.get('hero_btn2_url', '/shop?filter=new') }}" class="bg-zinc-900/90 border border-zinc-700 hover:border-amber-400 text-zinc-100 font-bold px-8 py-4 rounded-xl text-sm sm:text-base hover:bg-zinc-800 transition transform hover:-translate-y-0.5 backdrop-blur-sm flex items-center gap-2">
+        <i class="fas fa-sparkles text-amber-400 text-xs"></i>
+        <span>{{ settings.get('hero_btn2_text', 'وصل حديثاً') }}</span>
+      </a>
+    </div>
+
+    <!-- Quick highlights -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 max-w-4xl mx-auto pt-8 border-t border-zinc-800/80 text-xs text-zinc-300">
+      <div class="flex items-center justify-center gap-2">
+        <i class="fas fa-check-circle text-amber-400"></i>
+        <span>ملابس رجالية 100%</span>
+      </div>
+      <div class="flex items-center justify-center gap-2">
+        <i class="fas fa-truck text-amber-400"></i>
+        <span>توصيل لكافة المحافظات</span>
+      </div>
+      <div class="flex items-center justify-center gap-2">
+        <i class="fas fa-hand-holding-usd text-amber-400"></i>
+        <span>الدفع عند الاستلام</span>
+      </div>
+      <div class="flex items-center justify-center gap-2">
+        <i class="fas fa-sync-alt text-amber-400"></i>
+        <span>استبدال واسترجاع ميسر</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Categories Grid (تصفح حسب التصنيف) -->
+<section class="py-16 bg-[#0c0c10] border-b border-zinc-800">
+  <div class="container mx-auto px-4">
+    <div class="text-center mb-10">
+      <span class="text-xs font-bold text-amber-400 tracking-widest uppercase">التشكيلات الرجالية</span>
+      <h2 class="text-2xl sm:text-3xl font-black text-zinc-100 mt-1">تصفح حسب التصنيف</h2>
+      <div class="w-12 h-1 bg-amber-400 mx-auto mt-3 rounded-full"></div>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-5">
+      {% for cat in categories %}
+        <a href="{{ url_for('store.shop', category=cat.slug) }}" class="group relative rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 transition duration-300 block shadow-md">
+          <div class="aspect-[4/5] overflow-hidden relative">
+            <img src="{{ cat.image_url or url_for('static', filename='images/placeholder.svg') }}" alt="{{ cat.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+          </div>
+          <div class="absolute bottom-0 inset-x-0 p-3 text-center">
+            <h3 class="font-bold text-sm sm:text-base text-zinc-100 group-hover:text-amber-400 transition">{{ cat.name }}</h3>
+            <span class="text-[10px] text-zinc-400 block mt-0.5">تسوق التشكيلة &larr;</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- 3. New Arrivals (وصل حديثاً) -->
+{% if new_arrivals %}
+<section class="py-16 bg-[#0a0a0c] border-b border-zinc-800">
+  <div class="container mx-auto px-4">
+    <div class="flex items-end justify-between mb-10">
+      <div>
+        <span class="text-xs font-bold text-amber-400 tracking-widest uppercase">أحدث الموديلات</span>
+        <h2 class="text-2xl sm:text-3xl font-black text-zinc-100 mt-1">وصل حديثاً في وَقّار</h2>
+      </div>
+      <a href="{{ url_for('store.shop', filter='new') }}" class="text-xs font-bold text-amber-400 hover:text-amber-300 transition flex items-center gap-1">
+        <span>عرض الكل</span>
+        <i class="fas fa-chevron-left text-[10px]"></i>
+      </a>
+    </div>
+
+    <!-- 4 columns desktop, 3 tablet, 2 mobile -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-6">
+      {% for prod in new_arrivals %}
+        {% include 'components/product_card.html' %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 4. Best Sellers (الأكثر مبيعاً) -->
+{% if best_sellers %}
+<section class="py-16 bg-[#0c0c10] border-b border-zinc-800">
+  <div class="container mx-auto px-4">
+    <div class="flex items-end justify-between mb-10">
+      <div>
+        <span class="text-xs font-bold text-amber-400 tracking-widest uppercase">اختيارات الرجال المفضلة</span>
+        <h2 class="text-2xl sm:text-3xl font-black text-zinc-100 mt-1">الأكثر مبيعاً</h2>
+      </div>
+      <a href="{{ url_for('store.shop', filter='best') }}" class="text-xs font-bold text-amber-400 hover:text-amber-300 transition flex items-center gap-1">
+        <span>عرض الكل</span>
+        <i class="fas fa-chevron-left text-[10px]"></i>
+      </a>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-6">
+      {% for prod in best_sellers %}
+        {% include 'components/product_card.html' %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 5. Waqar Offers (عروض وَقّار) -->
+{% if offers %}
+<section class="py-16 bg-[#0a0a0c] border-b border-zinc-800">
+  <div class="container mx-auto px-4">
+    <div class="flex items-end justify-between mb-10">
+      <div>
+        <span class="text-xs font-bold text-amber-400 tracking-widest uppercase">خصومات وتخفيضات مميزة</span>
+        <h2 class="text-2xl sm:text-3xl font-black text-zinc-100 mt-1">عروض وَقّار</h2>
+      </div>
+      <a href="{{ url_for('store.shop', filter='offer') }}" class="text-xs font-bold text-amber-400 hover:text-amber-300 transition flex items-center gap-1">
+        <span>عرض الكل</span>
+        <i class="fas fa-chevron-left text-[10px]"></i>
+      </a>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-6">
+      {% for prod in offers %}
+        {% include 'components/product_card.html' %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 6. Why Waqar (لماذا وَقّار؟) -->
+<section class="py-16 bg-[#0e0e14] border-b border-zinc-800">
+  <div class="container mx-auto px-4">
+    <div class="text-center mb-12">
+      <span class="text-xs font-bold text-amber-400 tracking-widest uppercase">خدمات ومزايا استثنائية</span>
+      <h2 class="text-2xl sm:text-3xl font-black text-zinc-100 mt-1">لماذا تتسوق من وَقّار؟</h2>
+      <div class="w-12 h-1 bg-amber-400 mx-auto mt-3 rounded-full"></div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Benefit 1 -->
+      <div class="p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800 hover:border-amber-500/40 transition text-center group">
+        <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-2xl mx-auto mb-4 group-hover:scale-110 transition">
+          <i class="fas fa-tshirt"></i>
+        </div>
+        <h3 class="font-bold text-base text-zinc-100 mb-2">{{ settings.get('why_waqar_1_title', 'تشكيلة رجالية عصرية') }}</h3>
+        <p class="text-xs text-zinc-400 leading-relaxed">{{ settings.get('why_waqar_1_desc', 'أحدث صيحات الموضة والقصات الرجالية الكلاسيكية والحديثة.') }}</p>
+      </div>
+
+      <!-- Benefit 2 -->
+      <div class="p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800 hover:border-amber-500/40 transition text-center group">
+        <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-2xl mx-auto mb-4 group-hover:scale-110 transition">
+          <i class="fas fa-award"></i>
+        </div>
+        <h3 class="font-bold text-base text-zinc-100 mb-2">{{ settings.get('why_waqar_2_title', 'جودة مختارة') }}</h3>
+        <p class="text-xs text-zinc-400 leading-relaxed">{{ settings.get('why_waqar_2_desc', 'أقمشة فاخرة وخياطة متقنة تدوم طويلاً وتمنحك راحة تامة.') }}</p>
+      </div>
+
+      <!-- Benefit 3 -->
+      <div class="p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800 hover:border-amber-500/40 transition text-center group">
+        <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-2xl mx-auto mb-4 group-hover:scale-110 transition">
+          <i class="fas fa-shopping-cart"></i>
+        </div>
+        <h3 class="font-bold text-base text-zinc-100 mb-2">{{ settings.get('why_waqar_3_title', 'طلب أونلاين بسهولة') }}</h3>
+        <p class="text-xs text-zinc-400 leading-relaxed">{{ settings.get('why_waqar_3_desc', 'تجربة تسوق سهلة وسريعة مع خيار الدفع عند الاستلام.') }}</p>
+      </div>
+
+      <!-- Benefit 4 -->
+      <div class="p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800 hover:border-amber-500/40 transition text-center group">
+        <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-2xl mx-auto mb-4 group-hover:scale-110 transition">
+          <i class="fas fa-truck-fast"></i>
+        </div>
+        <h3 class="font-bold text-base text-zinc-100 mb-2">{{ settings.get('why_waqar_4_title', 'توصيل داخل الأردن') }}</h3>
+        <p class="text-xs text-zinc-400 leading-relaxed">{{ settings.get('why_waqar_4_desc', 'شحن وتوصيل فوري في السلط وعمان وجميع محافظات المملكة.') }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. Instagram Section -->
+<section class="py-14 bg-[#0a0a0c] border-b border-zinc-800 text-center">
+  <div class="container mx-auto px-4">
+    <div class="max-w-xl mx-auto p-8 rounded-2xl bg-gradient-to-b from-zinc-900 to-zinc-950 border border-zinc-800">
+      <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-500 via-pink-500 to-purple-600 flex items-center justify-center text-white text-3xl mx-auto mb-4 shadow-lg">
+        <i class="fab fa-instagram"></i>
+      </div>
+      <h3 class="text-xl font-bold text-zinc-100 mb-1">تابعنا على إنستغرام</h3>
+      <p class="text-sm text-amber-400 font-semibold mb-5" dir="ltr">{{ settings.get('instagram', '@waqar_fashion199') }}</p>
+      <p class="text-xs text-zinc-400 mb-6">شاهد أحدث التنسيقات الرجالية وإطلالات الموسم واستفد من العروض الحصرية.</p>
+      <a href="{{ settings.get('instagram_url', 'https://instagram.com/waqar_fashion199') }}" target="_blank" class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 via-pink-600 to-amber-600 text-white text-sm font-bold px-6 py-3 rounded-xl hover:opacity-90 transition shadow-md">
+        <i class="fab fa-instagram text-base"></i>
+        <span>تابعنا على Instagram</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- 8. Store Location & Google Maps (زورنا في السلط) -->
+<section class="py-16 bg-[#0c0c10]">
+  <div class="container mx-auto px-4">
+    <div class="text-center mb-10">
+      <span class="text-xs font-bold text-amber-400 tracking-widest uppercase">موقع المحل</span>
+      <h2 class="text-2xl sm:text-3xl font-black text-zinc-100 mt-1">زورنا في السلط</h2>
+      <p class="text-xs text-zinc-400 mt-2">{{ settings.get('store_address', 'السلط، الأردن - بالقرب من مركز المدينة') }}</p>
+    </div>
+
+    <div class="rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl h-80 sm:h-96 w-full max-w-5xl mx-auto">
+      <iframe 
+        src="{{ settings.get('google_maps_embed', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d54109.82027202356!2d35.70889279599609!3d32.03917415494247!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x151ca79e49635f79%3A0xbce5c1507d4b4a39!2sAs-Salt!5e0!3m2!1sen!2sjo!4v1700000000000!5m2!1sen!2sjo') }}" 
+        width="100%" 
+        height="100%" 
+        style="border:0; filter: invert(90%) hue-rotate(180deg) brightness(95%) contrast(90%);" 
+        allowfullscreen="" 
+        loading="lazy" 
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+

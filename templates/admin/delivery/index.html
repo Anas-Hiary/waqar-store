@@ -1,0 +1,96 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}إدارة مناطق ورسوم التوصيل | لوحة تحكم وَقّار{% endblock %}
+{% block header_title %}إدارة رسوم ومناطق التوصيل في الأردن{% endblock %}
+
+{% block admin_content %}
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+  
+  <!-- Add Zone Form (4 cols) -->
+  <div class="lg:col-span-4 bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-4">
+    <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider pb-2 border-b border-zinc-800">إضافة منطقة توصيل جديدة</h2>
+
+    <form action="{{ url_for('admin.delivery_zones_list') }}" method="POST" class="space-y-4 text-xs">
+      <div>
+        <label class="block text-zinc-300 font-bold mb-1.5">اسم المحافظة / المنطقة *</label>
+        <input type="text" name="governorate_name" required placeholder="مثال: السلط، عمّان، الزرقاء..." class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-zinc-100 focus:outline-none focus:border-amber-400">
+      </div>
+
+      <div>
+        <label class="block text-zinc-300 font-bold mb-1.5">أجور التوصيل (د.أ) *</label>
+        <input type="number" step="0.25" min="0" name="fee" required placeholder="2.00" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-zinc-100 focus:outline-none focus:border-amber-400 font-bold">
+      </div>
+
+      <div>
+        <label class="block text-zinc-300 font-bold mb-1.5">المدة التقديرية للتوصيل *</label>
+        <input type="text" name="estimated_time" required value="24 - 48 ساعة" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-zinc-100 focus:outline-none focus:border-amber-400">
+      </div>
+
+      <button type="submit" class="w-full gold-gradient-bg text-black font-bold py-3 rounded-xl hover:opacity-90 transition text-xs shadow mt-2">
+        إضافة المنطقة
+      </button>
+    </form>
+  </div>
+
+  <!-- Zones Table (8 cols) -->
+  <div class="lg:col-span-8 bg-[#121217] border border-zinc-800 rounded-2xl p-6 shadow-sm">
+    <h2 class="text-sm font-bold text-zinc-100 pb-3 border-b border-zinc-800 mb-4">مناطق التوصيل والأسعار الحالية</h2>
+
+    <div class="overflow-x-auto text-xs">
+      <table class="w-full text-right border-collapse">
+        <thead>
+          <tr class="bg-zinc-900/60 text-zinc-400 border-b border-zinc-800">
+            <th class="p-3 font-bold">المحافظة / المنطقة</th>
+            <th class="p-3 font-bold">أجور التوصيل</th>
+            <th class="p-3 font-bold">المدة التقديرية</th>
+            <th class="p-3 font-bold text-center">الحالة</th>
+            <th class="p-3 font-bold text-left">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-zinc-800/60 text-zinc-300">
+          {% for z in zones %}
+            <tr class="hover:bg-zinc-800/30 transition">
+              <form action="{{ url_for('admin.delivery_zone_edit', zone_id=z.id) }}" method="POST">
+                <td class="p-3">
+                  <input type="text" name="governorate_name" value="{{ z.governorate_name }}" class="bg-zinc-900 border border-zinc-700 rounded px-2.5 py-1 text-xs text-zinc-100 font-bold focus:outline-none focus:border-amber-400">
+                </td>
+
+                <td class="p-3">
+                  <input type="number" step="0.25" min="0" name="fee" value="{{ z.fee }}" class="w-20 bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-amber-400 font-bold focus:outline-none focus:border-amber-400 text-center">
+                  <span class="text-zinc-500 mr-1">د.أ</span>
+                </td>
+
+                <td class="p-3">
+                  <input type="text" name="estimated_time" value="{{ z.estimated_time }}" class="bg-zinc-900 border border-zinc-700 rounded px-2.5 py-1 text-xs text-zinc-300 focus:outline-none focus:border-amber-400">
+                </td>
+
+                <td class="p-3 text-center">
+                  <label class="cursor-pointer">
+                    <input type="checkbox" name="is_active" value="1" {% if z.is_active %}checked{% endif %} class="rounded bg-zinc-800 text-amber-500">
+                  </label>
+                </td>
+
+                <td class="p-3 text-left">
+                  <div class="flex items-center justify-end gap-2">
+                    <button type="submit" class="bg-zinc-800 hover:bg-amber-400 hover:text-black text-zinc-200 border border-zinc-700 px-3 py-1 rounded text-[11px] font-bold transition">
+                      تحديث
+                    </button>
+                    </form>
+                    <form action="{{ url_for('admin.delivery_zone_delete', zone_id=z.id) }}" method="POST" onsubmit="return confirm('حذف منطقة التوصيل هذه؟');" class="inline">
+                      <button type="submit" class="p-1 text-red-400 hover:text-red-300 transition" title="حذف">
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+

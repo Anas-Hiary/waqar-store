@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}حسابي | متجر وَقّار للملابس الرجالية{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-10">
+  
+  <div class="flex items-center justify-between pb-6 border-b border-zinc-800 mb-8">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black text-zinc-100">حسابي الشخصي</h1>
+      <p class="text-xs text-zinc-400 mt-1">أهلاً بك، {{ current_customer.name }}</p>
+    </div>
+    <a href="{{ url_for('auth.logout') }}" class="bg-zinc-800 hover:bg-red-950/60 border border-zinc-700 hover:border-red-500/50 text-zinc-300 hover:text-red-300 text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>تسجيل الخروج</span>
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- Profile Info (4 cols) -->
+    <div class="lg:col-span-4 bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-6">
+      <h2 class="font-bold text-sm text-amber-400 uppercase tracking-wider pb-3 border-b border-zinc-800">بياناتي الشخصية</h2>
+
+      <form action="{{ url_for('auth.profile') }}" method="POST" class="space-y-4 text-xs">
+        <div>
+          <label class="block text-zinc-400 mb-1">الاسم الكامل</label>
+          <input type="text" name="name" value="{{ current_customer.name }}" required class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-zinc-100 focus:outline-none focus:border-amber-400">
+        </div>
+
+        <div>
+          <label class="block text-zinc-400 mb-1">رقم الهاتف</label>
+          <input type="tel" value="{{ current_customer.phone }}" disabled class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2.5 text-zinc-500 cursor-not-allowed" dir="ltr">
+        </div>
+
+        <div>
+          <label class="block text-zinc-400 mb-1">المحافظة</label>
+          <input type="text" name="governorate" value="{{ current_customer.governorate or 'السلط' }}" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-zinc-100 focus:outline-none focus:border-amber-400">
+        </div>
+
+        <div>
+          <label class="block text-zinc-400 mb-1">المدينة / المنطقة</label>
+          <input type="text" name="city" value="{{ current_customer.city or '' }}" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-zinc-100 focus:outline-none focus:border-amber-400">
+        </div>
+
+        <div>
+          <label class="block text-zinc-400 mb-1">العنوان التفصيلي</label>
+          <input type="text" name="address" value="{{ current_customer.address or '' }}" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2.5 text-zinc-100 focus:outline-none focus:border-amber-400">
+        </div>
+
+        <button type="submit" class="w-full gold-gradient-bg text-black font-bold py-2.5 rounded-lg hover:opacity-90 transition text-xs shadow">
+          حفظ التعديلات
+        </button>
+      </form>
+    </div>
+
+    <!-- Orders History (8 cols) -->
+    <div class="lg:col-span-8 bg-[#121217] border border-zinc-800 rounded-2xl p-6">
+      <h2 class="font-bold text-sm text-amber-400 uppercase tracking-wider pb-3 border-b border-zinc-800 mb-6">سجل طلباتي ({{ orders|length }})</h2>
+
+      {% if orders %}
+        <div class="space-y-4 text-xs">
+          {% for o in orders %}
+            <div class="p-4 rounded-xl bg-zinc-900/70 border border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-3 mb-1">
+                  <span class="font-black text-amber-300 font-mono text-sm">{{ o.order_number }}</span>
+                  
+                  <!-- Badge status -->
+                  {% if o.status == 'new' %}
+                    <span class="bg-blue-950/60 text-blue-300 border border-blue-500/40 px-2 py-0.5 rounded text-[10px] font-bold">جديد</span>
+                  {% elif o.status == 'processing' %}
+                    <span class="bg-amber-950/60 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded text-[10px] font-bold">قيد التجهيز</span>
+                  {% elif o.status == 'shipped' %}
+                    <span class="bg-purple-950/60 text-purple-300 border border-purple-500/40 px-2 py-0.5 rounded text-[10px] font-bold">تم الشحن</span>
+                  {% elif o.status == 'delivered' %}
+                    <span class="bg-green-950/60 text-green-300 border border-green-500/40 px-2 py-0.5 rounded text-[10px] font-bold">تم التسليم</span>
+                  {% else %}
+                    <span class="bg-red-950/60 text-red-300 border border-red-500/40 px-2 py-0.5 rounded text-[10px] font-bold">ملغي</span>
+                  {% endif %}
+                </div>
+                <span class="text-zinc-400 block">{{ o.created_at[:10] }} | التوصيل إلى: {{ o.customer_governorate }}</span>
+              </div>
+
+              <div class="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t sm:border-t-0 pt-2 sm:pt-0 border-zinc-800">
+                <span class="font-black text-sm text-zinc-100">{{ format_price(o.total_amount) }}</span>
+                <a href="{{ url_for('store.order_confirmation', order_number=o.order_number) }}" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg border border-zinc-700 font-bold transition">
+                  تفاصيل الطلب
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-12 text-zinc-500 text-xs">
+          <i class="fas fa-box-open text-3xl mb-2 block"></i>
+          <span>لم تقم بإجراء أي طلبات بعد.</span>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+

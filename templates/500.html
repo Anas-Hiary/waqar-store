@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}حدث خطأ (500) | متجر وَقّار{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-20 text-center">
+  <div class="max-w-md mx-auto bg-[#121217] border border-zinc-800 rounded-3xl p-10 shadow-2xl">
+    <div class="text-6xl font-black text-red-500 mb-4">500</div>
+    <h1 class="text-xl font-bold text-zinc-100 mb-2">حدث خطأ في الخادم</h1>
+    <p class="text-xs text-zinc-400 mb-8 leading-relaxed">حدث خطأ غير متوقع، يرجى المحاولة مرة أخرى لاحقاً أو التواصل معنا عبر واتساب للمساعدة.</p>
+    <a href="{{ url_for('store.index') }}" class="inline-block gold-gradient-bg text-black text-xs font-black px-8 py-3 rounded-xl hover:opacity-90 transition shadow-lg">
+      العودة للرئيسية
+    </a>
+  </div>
+</div>
+{% endblock %}
+

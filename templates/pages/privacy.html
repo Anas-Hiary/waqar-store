@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}سياسة الخصوصية | متجر وَقّار{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+  <div class="max-w-3xl mx-auto bg-[#121217] border border-zinc-800 rounded-3xl p-8 sm:p-12 shadow-xl">
+    
+    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-zinc-800">
+      <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg font-bold">
+        <i class="fas fa-user-shield"></i>
+      </div>
+      <div>
+        <h1 class="text-xl sm:text-2xl font-black text-zinc-100">سياسة الخصوصية وأمان البيانات</h1>
+        <span class="text-xs text-zinc-400">متجر وَقّار للأزياء الرجالية - السلط، الأردن</span>
+      </div>
+    </div>
+
+    <div class="space-y-6 text-xs sm:text-sm text-zinc-300 leading-relaxed">
+      <div>
+        <h2 class="font-bold text-amber-400 mb-2 text-sm">1. جمع البيانات الشخصية</h2>
+        <p>{{ settings.get('privacy_policy', 'نلتزم بحماية خصوصية بيانات عملائنا وعدم مشاركتها مع أي طرف ثالث.') }}</p>
+      </div>
+
+      <div>
+        <h2 class="font-bold text-amber-400 mb-2 text-sm">2. استخدام المعلومات</h2>
+        <p>نستخدم الاسم، رقم الهاتف، وعنوان التوصيل حصرياً لمعالجة طلبات الملابس الخاصة بكم، التواصل بشأن حالة الشحن، وتقديم تجربة تسوق سلسة.</p>
+      </div>
+
+      <div>
+        <h2 class="font-bold text-amber-400 mb-2 text-sm">3. حماية وأمن المعلومات</h2>
+        <p>نطبق أعلى معايير الحماية التقنية لمنع الوصول غير المصرح به لمعلوماتكم، ولا نقوم بتخزين أي بيانات دفع بنكية نظراً لاعتماد طريقة الدفع نقدًا عند الاستلام.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}الصفحة غير موجودة (404) | متجر وَقّار{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-20 text-center">
+  <div class="max-w-md mx-auto bg-[#121217] border border-zinc-800 rounded-3xl p-10 shadow-2xl">
+    <div class="text-6xl font-black gold-gradient-text mb-4">404</div>
+    <h1 class="text-xl font-bold text-zinc-100 mb-2">عذراً، هذه الصفحة غير متوفرة</h1>
+    <p class="text-xs text-zinc-400 mb-8 leading-relaxed">ربما تم نقل الصفحة أو أن الرابط غير صحيح. يمكنك العودة للصفحة الرئيسية وتصفح أحدث ملابسنا الرجالية.</p>
+    <a href="{{ url_for('store.index') }}" class="inline-block gold-gradient-bg text-black text-xs font-black px-8 py-3 rounded-xl hover:opacity-90 transition shadow-lg">
+      العودة للرئيسية
+    </a>
+  </div>
+</div>
+{% endblock %}
+

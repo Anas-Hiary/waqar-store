@@ -1,0 +1,130 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}إدارة الطلبات والمبيعات | لوحة تحكم وَقّار{% endblock %}
+{% block header_title %}إدارة طلبات العملاء ({{ orders|length }}){% endblock %}
+
+{% block admin_content %}
+<div class="space-y-6">
+  
+  <!-- Status Filter Pills -->
+  <div class="flex flex-wrap items-center gap-2 bg-[#121217] border border-zinc-800 rounded-2xl p-4">
+    <a href="{{ url_for('admin.orders_list') }}" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition {% if not status_filter %}bg-amber-400 text-black shadow{% else %}bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800{% endif %}">
+      الكل ({{ orders|length if not status_filter else counts_map.values()|sum }})
+    </a>
+    <a href="{{ url_for('admin.orders_list', status='new') }}" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition {% if status_filter == 'new' %}bg-blue-500 text-white shadow{% else %}bg-zinc-900 text-blue-400 hover:bg-blue-950/40 border border-blue-500/30{% endif %}">
+      جديد ({{ counts_map.get('new', 0) }})
+    </a>
+    <a href="{{ url_for('admin.orders_list', status='processing') }}" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition {% if status_filter == 'processing' %}bg-amber-500 text-black shadow{% else %}bg-zinc-900 text-amber-400 hover:bg-amber-950/40 border border-amber-500/30{% endif %}">
+      قيد التجهيز ({{ counts_map.get('processing', 0) }})
+    </a>
+    <a href="{{ url_for('admin.orders_list', status='shipped') }}" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition {% if status_filter == 'shipped' %}bg-purple-500 text-white shadow{% else %}bg-zinc-900 text-purple-400 hover:bg-purple-950/40 border border-purple-500/30{% endif %}">
+      تم الشحن ({{ counts_map.get('shipped', 0) }})
+    </a>
+    <a href="{{ url_for('admin.orders_list', status='delivered') }}" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition {% if status_filter == 'delivered' %}bg-green-500 text-white shadow{% else %}bg-zinc-900 text-green-400 hover:bg-green-950/40 border border-green-500/30{% endif %}">
+      تم التسليم ({{ counts_map.get('delivered', 0) }})
+    </a>
+    <a href="{{ url_for('admin.orders_list', status='cancelled') }}" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition {% if status_filter == 'cancelled' %}bg-red-500 text-white shadow{% else %}bg-zinc-900 text-red-400 hover:bg-red-950/40 border border-red-500/30{% endif %}">
+      ملغي ({{ counts_map.get('cancelled', 0) }})
+    </a>
+  </div>
+
+  <!-- Search & Date Filter -->
+  <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-4">
+    <form method="GET" action="{{ url_for('admin.orders_list') }}" class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+      <div>
+        <input type="text" name="q" value="{{ search_q }}" placeholder="بحث برقم الطلب أو اسم العميل أو الهاتف..." class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-400">
+      </div>
+      <div>
+        <input type="date" name="date_from" value="{{ request.args.get('date_from', '') }}" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-400">
+      </div>
+      <div class="flex gap-2">
+        <button type="submit" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 font-bold rounded-lg py-2 transition">
+          تطبيق البحث
+        </button>
+        <a href="{{ url_for('admin.orders_list') }}" class="px-4 py-2 bg-zinc-900 border border-zinc-800 text-zinc-400 font-bold rounded-lg transition text-center">
+          إلغاء
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Orders Table -->
+  <div class="bg-[#121217] border border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+    {% if orders %}
+      <div class="overflow-x-auto text-xs">
+        <table class="w-full text-right border-collapse">
+          <thead>
+            <tr class="bg-zinc-900/80 text-zinc-400 border-b border-zinc-800">
+              <th class="p-3.5 font-bold">رقم الطلب والتاريخ</th>
+              <th class="p-3.5 font-bold">العميل والهاتف</th>
+              <th class="p-3.5 font-bold">المحافظة والعنوان</th>
+              <th class="p-3.5 font-bold text-center">المبلغ الكلي</th>
+              <th class="p-3.5 font-bold text-center">حالة الطلب</th>
+              <th class="p-3.5 font-bold text-left">الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-800/60 text-zinc-300">
+            {% for o in orders %}
+              <tr class="hover:bg-zinc-800/30 transition">
+                <td class="p-3.5">
+                  <a href="{{ url_for('admin.order_detail', order_id=o.id) }}" class="font-mono font-black text-amber-300 text-sm hover:underline block">
+                    {{ o.order_number }}
+                  </a>
+                  <span class="text-[10px] text-zinc-500">{{ o.created_at[:16] }}</span>
+                </td>
+
+                <td class="p-3.5">
+                  <span class="font-bold text-zinc-100 block">{{ o.customer_name }}</span>
+                  <a href="tel:{{ o.customer_phone }}" class="text-zinc-400 hover:text-amber-400" dir="ltr">{{ o.customer_phone }}</a>
+                </td>
+
+                <td class="p-3.5">
+                  <span class="font-bold text-amber-400 block">{{ o.customer_governorate }}</span>
+                  <span class="text-[11px] text-zinc-400">{{ o.customer_city }} - {{ o.customer_address }}</span>
+                </td>
+
+                <td class="p-3.5 text-center">
+                  <span class="font-black text-zinc-100 text-sm">{{ format_price(o.total_amount) }}</span>
+                  <span class="text-[10px] text-zinc-500 block">دفع عند الاستلام</span>
+                </td>
+
+                <td class="p-3.5 text-center">
+                  {% if o.status == 'new' %}
+                    <span class="bg-blue-950/60 text-blue-300 border border-blue-500/40 px-2.5 py-1 rounded-full text-[10px] font-bold">جديد</span>
+                  {% elif o.status == 'processing' %}
+                    <span class="bg-amber-950/60 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-full text-[10px] font-bold">قيد التجهيز</span>
+                  {% elif o.status == 'shipped' %}
+                    <span class="bg-purple-950/60 text-purple-300 border border-purple-500/40 px-2.5 py-1 rounded-full text-[10px] font-bold">تم الشحن</span>
+                  {% elif o.status == 'delivered' %}
+                    <span class="bg-green-950/60 text-green-300 border border-green-500/40 px-2.5 py-1 rounded-full text-[10px] font-bold">تم التسليم</span>
+                  {% else %}
+                    <span class="bg-red-950/60 text-red-300 border border-red-500/40 px-2.5 py-1 rounded-full text-[10px] font-bold">ملغي</span>
+                  {% endif %}
+                </td>
+
+                <td class="p-3.5 text-left">
+                  <div class="flex items-center justify-end gap-2">
+                    <a href="{{ url_for('admin.order_detail', order_id=o.id) }}" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg border border-zinc-700 font-bold transition text-[11px]">
+                      تفاصيل
+                    </a>
+                    <a href="{{ url_for('admin.order_invoice', order_id=o.id) }}" target="_blank" class="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 rounded-lg border border-zinc-700 transition" title="طباعة الفاتورة">
+                      <i class="fas fa-print"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-12 text-center text-zinc-500 text-xs">
+        <i class="fas fa-inbox text-3xl mb-3 block"></i>
+        <span>لا توجد طلبات تطابق الفلترة المحددة.</span>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+

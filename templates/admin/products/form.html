@@ -1,0 +1,278 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}{{ 'تعديل منتج' if product else 'إضافة منتج رجالي جديد' }} | لوحة تحكم وَقّار{% endblock %}
+{% block header_title %}{{ 'تعديل بيانات المنتج والمخزون' if product else 'إضافة منتج رجالي جديد' }}{% endblock %}
+
+{% block admin_content %}
+<form action="{{ url_for('admin.product_edit', product_id=product.id) if product else url_for('admin.product_new') }}" method="POST" enctype="multipart/form-data" class="space-y-8 max-w-5xl mx-auto">
+  
+  <!-- Form Header & Actions -->
+  <div class="flex items-center justify-between bg-[#121217] border border-zinc-800 rounded-2xl p-4 sm:p-5">
+    <div>
+      <h1 class="text-lg font-bold text-zinc-100">{{ 'تعديل: ' ~ product.name if product else 'إضافة قطعة ملابس رجالية جديدة' }}</h1>
+      <p class="text-xs text-zinc-400">حدد البيانات والأسعار والصور والألوان والمقاسات والمخزون</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="{{ url_for('admin.products_list') }}" class="px-4 py-2 bg-zinc-800 text-zinc-300 hover:text-white rounded-xl text-xs font-bold transition">
+        إلغاء
+      </a>
+      <button type="submit" class="gold-gradient-bg text-black font-black text-xs px-6 py-2.5 rounded-xl hover:opacity-90 transition shadow-lg gold-glow flex items-center gap-1.5">
+        <i class="fas fa-save"></i>
+        <span>{{ 'حفظ التعديلات' if product else 'نشر المنتج' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- Main Info (8 cols) -->
+    <div class="lg:col-span-8 space-y-6">
+      
+      <!-- Card 1: Basic Information -->
+      <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-4">
+        <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider pb-2 border-b border-zinc-800">البيانات الأساسية للمنتج</h2>
+
+        <!-- Product Name -->
+        <div>
+          <label class="block text-xs font-bold text-zinc-300 mb-1.5">اسم المنتج الرجالي *</label>
+          <input type="text" name="name" value="{{ product.name if product else '' }}" required placeholder="مثال: قميص رجالي كلاسيك فاخر" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs sm:text-sm text-zinc-100 focus:outline-none focus:border-amber-400 font-semibold">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Category -->
+          <div>
+            <label class="block text-xs font-bold text-zinc-300 mb-1.5">التصنيف الرجالي *</label>
+            <select name="category_id" required class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs text-zinc-100 focus:outline-none focus:border-amber-400">
+              <option value="" disabled {% if not product %}selected{% endif %}>-- اختر التصنيف --</option>
+              {% for c in categories %}
+                <option value="{{ c.id }}" {% if product and product.category_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- SKU -->
+          <div>
+            <label class="block text-xs font-bold text-zinc-300 mb-1.5">رمز المنتج (SKU)</label>
+            <input type="text" name="sku" value="{{ product.sku if product else '' }}" placeholder="مثال: WQ-SH-001" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs text-zinc-100 focus:outline-none focus:border-amber-400 font-mono">
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="block text-xs font-bold text-zinc-300 mb-1.5">وصف المنتج ومميزاته *</label>
+          <textarea name="description" rows="4" placeholder="اكتب وصفاً مفصلاً يبرز أناقة وجودة القطعة وتفاصيل تصميمها..." class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs text-zinc-100 focus:outline-none focus:border-amber-400 leading-relaxed">{{ product.description if product else '' }}</textarea>
+        </div>
+
+      </div>
+
+      <!-- Card 2: Pricing & Badges -->
+      <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-4">
+        <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider pb-2 border-b border-zinc-800">التسعير والعروض</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Base Price -->
+          <div>
+            <label class="block text-xs font-bold text-zinc-300 mb-1.5">السعر الأساسي (د.أ) *</label>
+            <input type="number" step="0.01" min="0" name="base_price" value="{{ product.base_price if product else '' }}" required placeholder="24.00" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs sm:text-sm text-zinc-100 focus:outline-none focus:border-amber-400 font-bold">
+          </div>
+
+          <!-- Discount Price -->
+          <div>
+            <label class="block text-xs font-bold text-zinc-300 mb-1.5">سعر الخصم / العرض (اختياري)</label>
+            <input type="number" step="0.01" min="0" name="discount_price" value="{{ product.discount_price if product and product.discount_price else '' }}" placeholder="18.50" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs sm:text-sm text-zinc-100 focus:outline-none focus:border-amber-400 font-bold text-amber-400">
+          </div>
+        </div>
+
+        <!-- Badges Checkboxes -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs">
+          <label class="flex items-center gap-2 p-2.5 rounded-lg bg-zinc-900 border border-zinc-800 cursor-pointer hover:border-zinc-700">
+            <input type="checkbox" name="is_featured" value="1" {% if product and product.is_featured %}checked{% endif %} class="rounded bg-zinc-800 border-zinc-600 text-amber-500">
+            <span class="text-zinc-200">منتج مميز</span>
+          </label>
+
+          <label class="flex items-center gap-2 p-2.5 rounded-lg bg-zinc-900 border border-zinc-800 cursor-pointer hover:border-zinc-700">
+            <input type="checkbox" name="is_new" value="1" {% if not product or (product and product.is_new) %}checked{% endif %} class="rounded bg-zinc-800 border-zinc-600 text-amber-500">
+            <span class="text-zinc-200">وصل حديثاً</span>
+          </label>
+
+          <label class="flex items-center gap-2 p-2.5 rounded-lg bg-zinc-900 border border-zinc-800 cursor-pointer hover:border-zinc-700">
+            <input type="checkbox" name="is_bestseller" value="1" {% if product and product.is_bestseller %}checked{% endif %} class="rounded bg-zinc-800 border-zinc-600 text-amber-500">
+            <span class="text-zinc-200">الأكثر مبيعاً</span>
+          </label>
+
+          <label class="flex items-center gap-2 p-2.5 rounded-lg bg-zinc-900 border border-zinc-800 cursor-pointer hover:border-zinc-700">
+            <input type="checkbox" name="is_offer" value="1" {% if product and product.is_offer %}checked{% endif %} class="rounded bg-zinc-800 border-zinc-600 text-amber-500">
+            <span class="text-zinc-200">عرض خاص</span>
+          </label>
+        </div>
+
+      </div>
+
+      <!-- Card 3: Specifications (Material, Fit, Season, Care) -->
+      <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-4">
+        <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider pb-2 border-b border-zinc-800">مواصفات وخامة القطعة</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-zinc-300 mb-1.5">الخامة والقماش</label>
+            <input type="text" name="material" value="{{ product.material if product else '' }}" placeholder="مثال: قطن مصري 100%، صوف إيطالي، دنيم..." class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-2.5 text-xs text-zinc-100 focus:outline-none focus:border-amber-400">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-zinc-300 mb-1.5">القصة (Fit)</label>
+            <input type="text" name="fit" value="{{ product.fit if product else '' }}" placeholder="مثال: سليم فيت (Slim Fit)، ريجولار..." class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-2.5 text-xs text-zinc-100 focus:outline-none focus:border-amber-400">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-zinc-300 mb-1.5">الموسم</label>
+            <input type="text" name="season" value="{{ product.season if product else '' }}" placeholder="مثال: صيفي، شتوي، جميع المواسم..." class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-2.5 text-xs text-zinc-100 focus:outline-none focus:border-amber-400">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-zinc-300 mb-1.5">تعليمات الغسيل والعناية</label>
+            <input type="text" name="care_instructions" value="{{ product.care_instructions if product else '' }}" placeholder="مثال: غسيل يدوي أو آلي 30 مئوية..." class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-2.5 text-xs text-zinc-100 focus:outline-none focus:border-amber-400">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Card 4: COLOR x SIZE VARIANT & INVENTORY MATRIX (CRITICAL) -->
+      <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-zinc-800">
+          <div>
+            <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider">مصفوفة الألوان والمقاسات والمخزون</h2>
+            <p class="text-[11px] text-zinc-400">حدد كمية المخزون بدقة لكل مقاس ولون</p>
+          </div>
+
+          <!-- Quick generator buttons -->
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="addVariantRow()" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 text-xs font-bold px-3 py-1.5 rounded-lg border border-zinc-700 transition flex items-center gap-1">
+              <i class="fas fa-plus text-[10px]"></i>
+              <span>إضافة صف متغير</span>
+            </button>
+            <button type="button" onclick="generateStandardVariants('أسود', '#111111')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs px-2.5 py-1.5 rounded-lg border border-zinc-700 transition">
+              + مقاسات قياسية (S-XXL)
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto text-xs">
+          <table class="w-full text-right border-collapse">
+            <thead>
+              <tr class="text-zinc-400 bg-zinc-900/60 border-b border-zinc-800">
+                <th class="p-3 font-bold">اللون (المعاينة والاسم)</th>
+                <th class="p-3 font-bold">المقاس (S, M, L, 32...)</th>
+                <th class="p-3 font-bold text-center">الكمية المتوفرة بالمخزون</th>
+                <th class="p-3 font-bold text-center">حذف</th>
+              </tr>
+            </thead>
+            <tbody id="variant-rows-container">
+              {% if variants %}
+                {% for v in variants %}
+                  <tr class="border-b border-zinc-800 hover:bg-zinc-800/40 transition">
+                    <td class="p-3">
+                      <div class="flex items-center gap-2">
+                        <input type="color" name="variant_hex[]" value="{{ v.color_hex }}" class="w-8 h-8 rounded border-0 bg-transparent cursor-pointer">
+                        <input type="text" name="variant_color[]" value="{{ v.color_name }}" required placeholder="اسم اللون" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-amber-400 flex-1">
+                      </div>
+                    </td>
+                    <td class="p-3">
+                      <input type="text" name="variant_size[]" value="{{ v.size_name }}" required placeholder="المقاس" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-amber-400 w-full">
+                    </td>
+                    <td class="p-3 text-center">
+                      <input type="number" name="variant_stock[]" value="{{ v.stock_quantity }}" min="0" required class="bg-zinc-900 border border-zinc-700 rounded px-3 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-amber-400 w-24 text-center font-bold text-amber-400">
+                    </td>
+                    <td class="p-3 text-center">
+                      <button type="button" onclick="this.closest('tr').remove()" class="text-red-400 hover:text-red-300 p-1.5 transition">
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <!-- Initial demo row if new -->
+                <script>
+                  document.addEventListener('DOMContentLoaded', () => {
+                    generateStandardVariants('أسود', '#111111', ['M', 'L', 'XL'], 5);
+                  });
+                </script>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Sidebar Info & Images (4 cols) -->
+    <div class="lg:col-span-4 space-y-6">
+      
+      <!-- Card: Publication & Slug -->
+      <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-4">
+        <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider pb-2 border-b border-zinc-800">حالة النشر والرابط</h2>
+
+        <!-- Publish Toggle -->
+        <label class="flex items-center justify-between p-3 rounded-xl bg-zinc-900 border border-zinc-800 cursor-pointer">
+          <span class="text-xs font-bold text-zinc-200">نشر المنتج في المتجر</span>
+          <input type="checkbox" name="is_published" value="1" {% if not product or product.is_published %}checked{% endif %} class="rounded bg-zinc-800 border-zinc-600 text-amber-500 w-4 h-4">
+        </label>
+
+        <!-- Slug -->
+        <div>
+          <label class="block text-xs font-bold text-zinc-400 mb-1">الرابط الفريد (Slug)</label>
+          <input type="text" name="slug" value="{{ product.slug if product else '' }}" placeholder="يتم توليده تلقائياً إن ترك فارغاً" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-400 focus:outline-none focus:border-amber-400 font-mono" dir="ltr">
+        </div>
+      </div>
+
+      <!-- Card: Product Images Management -->
+      <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-4">
+        <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider pb-2 border-b border-zinc-800">صور المنتج</h2>
+
+        <!-- Existing Images List -->
+        {% if images %}
+          <div class="space-y-3">
+            <span class="text-xs text-zinc-400 block font-bold">الصور الحالية (اختر الصورة الرئيسية أو احذف):</span>
+            <div class="grid grid-cols-2 gap-3">
+              {% for img in images %}
+                <div class="relative rounded-xl overflow-hidden border {% if img.is_primary %}border-amber-400 ring-2 ring-amber-400/20{% else %}border-zinc-800{% endif %} bg-zinc-900 p-1 group">
+                  <img src="{{ img.image_url }}" class="w-full aspect-[3/4] object-cover rounded-lg">
+                  
+                  <div class="mt-2 flex items-center justify-between px-1 text-[11px]">
+                    <label class="flex items-center gap-1 text-zinc-300 cursor-pointer">
+                      <input type="radio" name="primary_image_id" value="{{ img.id }}" {% if img.is_primary %}checked{% endif %} class="text-amber-500">
+                      <span>رئيسية</span>
+                    </label>
+
+                    <label class="flex items-center gap-1 text-red-400 cursor-pointer" title="حذف هذه الصورة">
+                      <input type="checkbox" name="delete_images[]" value="{{ img.id }}" class="text-red-500">
+                      <i class="fas fa-trash-alt text-[10px]"></i>
+                    </label>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Upload New Files -->
+        <div>
+          <label class="block text-xs font-bold text-zinc-300 mb-1.5">رفع صور جديدة من جهازك</label>
+          <input type="file" name="images" multiple accept="image/*" onchange="previewImages(this)" class="w-full text-xs text-zinc-400 file:mr-0 file:ml-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-zinc-800 file:text-amber-400 hover:file:bg-zinc-700 cursor-pointer">
+          <div id="image-preview-container" class="flex flex-wrap gap-2 mt-3"></div>
+        </div>
+
+        <!-- Add Direct URLs -->
+        <div>
+          <label class="block text-xs font-bold text-zinc-300 mb-1.5">أو أضف روابط صور مباشرة (سطر لكل رابط)</label>
+          <textarea name="image_urls" rows="2" placeholder="https://example.com/photo.jpg" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-xs text-zinc-400 focus:outline-none focus:border-amber-400 font-mono" dir="ltr"></textarea>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</form>
+{% endblock %}
+

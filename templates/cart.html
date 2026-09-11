@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block title %}سلة الشراء | متجر وَقّار للملابس الرجالية{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  
+  <div class="flex items-center justify-between pb-6 border-b border-zinc-800 mb-8">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black text-zinc-100">سلة التسوق</h1>
+      <p class="text-xs text-zinc-400 mt-1">راجع قطع ملابسك الرجالية المختارة قبل إتمام الطلب</p>
+    </div>
+    <a href="{{ url_for('store.shop') }}" class="text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1">
+      <i class="fas fa-arrow-right text-[10px]"></i>
+      <span>متابعة التسوق</span>
+    </a>
+  </div>
+
+  {% if cart_items %}
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- Items Table / List (8 cols desktop) -->
+    <div class="lg:col-span-8 space-y-4">
+      
+      {% for item in cart_items %}
+      <div class="p-4 rounded-xl bg-[#121217] border border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        
+        <!-- Image & Title -->
+        <div class="flex items-center gap-4 flex-1">
+          <a href="{{ url_for('store.product_detail', slug=item.slug) }}" class="w-20 h-24 rounded-lg overflow-hidden bg-zinc-900 flex-shrink-0 border border-zinc-700/60">
+            <img src="{{ item.image }}" alt="{{ item.name }}" class="w-full h-full object-cover">
+          </a>
+          <div>
+            <a href="{{ url_for('store.product_detail', slug=item.slug) }}" class="font-bold text-sm text-zinc-100 hover:text-amber-400 transition block mb-1">
+              {{ item.name }}
+            </a>
+            <div class="flex flex-wrap items-center gap-2 text-xs text-zinc-400 mb-1">
+              <span class="bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">اللون: {{ item.color }}</span>
+              <span class="bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">المقاس: {{ item.size }}</span>
+            </div>
+            <div class="text-xs font-bold text-amber-400">
+              سعر القطعة: {{ format_price(item.price) }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Quantity & Item Total & Delete -->
+        <div class="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0 border-zinc-800">
+          
+          <!-- Stepper -->
+          <div class="flex items-center bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1">
+            <button type="button" onclick="updateCartItem('{{ item.key }}', {{ item.quantity - 1 }})" class="text-zinc-400 hover:text-white px-2 py-0.5 text-xs">
+              <i class="fas fa-minus"></i>
+            </button>
+            <span class="font-bold text-xs text-zinc-100 px-2">{{ item.quantity }}</span>
+            <button type="button" onclick="updateCartItem('{{ item.key }}', {{ item.quantity + 1 }})" class="text-zinc-400 hover:text-white px-2 py-0.5 text-xs">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+
+          <!-- Total for this item -->
+          <div class="text-sm font-black text-zinc-100 min-w-[70px] text-left">
+            {{ format_price(item.item_total) }}
+          </div>
+
+          <!-- Remove Button -->
+          <button type="button" onclick="removeCartItem('{{ item.key }}')" class="text-zinc-500 hover:text-red-400 p-1.5 transition" title="حذف">
+            <i class="fas fa-trash-alt text-sm"></i>
+          </button>
+
+        </div>
+
+      </div>
+      {% endfor %}
+
+      <!-- Free Delivery Alert / Progress -->
+      {% if subtotal < free_delivery_threshold %}
+        <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-truck-fast text-amber-400 text-sm"></i>
+            <span>أضف منتجات بقيمة <strong class="text-amber-200">{{ format_price(free_delivery_threshold - subtotal) }}</strong> إضافية للحصول على <strong>توصيل مجاني!</strong></span>
+          </div>
+          <a href="{{ url_for('store.shop') }}" class="underline font-bold">تسوق المزيد</a>
+        </div>
+      {% else %}
+        <div class="p-3 rounded-xl bg-green-950/40 border border-green-500/30 text-green-300 text-xs flex items-center gap-2">
+          <i class="fas fa-check-circle text-green-400"></i>
+          <span>تهانينا! طلبيتك مؤهلة لـ <strong>التوصيل المجاني</strong> في الأردن.</span>
+        </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Summary & Checkout Card (4 cols desktop) -->
+    <div class="lg:col-span-4">
+      <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-6 sticky top-24">
+        
+        <h3 class="font-bold text-base text-zinc-100 pb-3 border-b border-zinc-800">ملخص الطلب</h3>
+
+        <!-- Coupon input -->
+        <div>
+          <label class="block text-xs font-bold text-amber-400 mb-2">كود الخصم / الكوبون</label>
+          {% if applied_coupon %}
+            <div class="flex items-center justify-between bg-green-950/40 border border-green-500/30 p-2.5 rounded-lg text-xs text-green-300">
+              <div class="flex items-center gap-1.5">
+                <i class="fas fa-tag"></i>
+                <span>الكوبون <strong>{{ applied_coupon.code }}</strong> مفعّل</span>
+              </div>
+              <button type="button" onclick="removeCoupon()" class="text-red-400 hover:text-red-300 font-bold">إلغاء</button>
+            </div>
+          {% else %}
+            <div class="flex gap-2">
+              <input type="text" id="coupon-input" placeholder="أدخل رمز الكوبون" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-100 uppercase focus:outline-none focus:border-amber-400">
+              <button type="button" onclick="applyCoupon()" class="bg-zinc-800 border border-zinc-700 hover:border-amber-400 text-zinc-200 text-xs font-bold px-4 py-2 rounded-lg transition">
+                تطبيق
+              </button>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Breakdown -->
+        <div class="space-y-3 text-xs border-t border-zinc-800 pt-4">
+          <div class="flex justify-between text-zinc-400">
+            <span>المجموع الفرعي:</span>
+            <span class="font-semibold text-zinc-200">{{ format_price(subtotal) }}</span>
+          </div>
+
+          {% if discount_amount > 0 %}
+          <div class="flex justify-between text-green-400 font-semibold">
+            <span>الخصم المطبق:</span>
+            <span>- {{ format_price(discount_amount) }}</span>
+          </div>
+          {% endif %}
+
+          <div class="flex justify-between text-zinc-400">
+            <span>رسوم التوصيل:</span>
+            <span class="font-semibold text-zinc-200">
+              {% if subtotal >= free_delivery_threshold %}
+                <span class="text-green-400">مجاني</span>
+              {% else %}
+                تحسب عند اختيار المحافظة (1.50 - 3.50 د.أ)
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="flex justify-between text-base font-black text-amber-400 border-t border-zinc-800 pt-3">
+            <span>المجموع التقديري:</span>
+            <span>{{ format_price(subtotal - discount_amount) }}</span>
+          </div>
+        </div>
+
+        <!-- Checkout Action Button -->
+        <a href="{{ url_for('store.checkout') }}" class="w-full gold-gradient-bg text-black font-black text-sm py-3.5 px-6 rounded-xl hover:opacity-90 transition shadow-lg flex items-center justify-center gap-2">
+          <span>متابعة الشراء (الدفع عند الاستلام)</span>
+          <i class="fas fa-arrow-left text-xs"></i>
+        </a>
+
+        <!-- Payment assurance -->
+        <div class="pt-2 text-[11px] text-zinc-500 text-center flex items-center justify-center gap-1.5">
+          <i class="fas fa-shield-alt text-amber-400"></i>
+          <span>دفع آمن 100% نقداً عند استلام طلبك</span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+  {% else %}
+    <!-- Empty Cart -->
+    <div class="p-16 text-center bg-[#121217] rounded-2xl border border-zinc-800/80 max-w-lg mx-auto my-12">
+      <div class="w-20 h-20 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-amber-400 text-3xl mx-auto mb-5 shadow-inner">
+        <i class="fas fa-shopping-bag"></i>
+      </div>
+      <h2 class="text-xl font-bold text-zinc-100 mb-2">سلتك فارغة</h2>
+      <p class="text-xs text-zinc-400 mb-6 leading-relaxed">لم تقم بإضافة أي ملابس رجالية إلى سلة الشراء بعد. استكشف تشكيلاتنا الراقية الآن!</p>
+      <a href="{{ url_for('store.shop') }}" class="inline-block gold-gradient-bg text-black text-xs font-bold px-8 py-3 rounded-xl hover:opacity-90 shadow-lg transition">
+        ابدأ التسوق الآن
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+

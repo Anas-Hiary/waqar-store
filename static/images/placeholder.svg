@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="100%" height="100%">
+  <rect width="600" height="800" fill="#121216"/>
+  <rect x="20" y="20" width="560" height="760" rx="8" fill="none" stroke="#22222b" stroke-width="2"/>
+  <g transform="translate(300, 340)" fill="none" stroke="#c5a059" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Men's Suit Jacket Outline -->
+    <path d="M-60 -120 L60 -120 L90 -70 L110 80 L-110 80 L-90 -70 Z" fill="#181820" stroke="#c5a059" stroke-width="2"/>
+    <!-- Collar & Tie -->
+    <path d="M-30 -120 L0 -60 L30 -120" stroke="#dfc282" stroke-width="3"/>
+    <path d="M-10 -60 L10 -60 L5 30 L0 45 L-5 30 Z" fill="#c5a059"/>
+    <!-- Lapels -->
+    <path d="M-60 -120 L-25 -20 L-90 80" stroke="#c5a059" stroke-width="2"/>
+    <path d="M60 -120 L25 -20 L90 80" stroke="#c5a059" stroke-width="2"/>
+  </g>
+  <text x="300" y="520" font-family="'Tajawal', sans-serif" font-size="32" font-weight="bold" fill="#dfc282" text-anchor="middle">وَقّار</text>
+  <text x="300" y="560" font-family="'Tajawal', sans-serif" font-size="18" fill="#71717a" text-anchor="middle">ملابس رجالية فاخرة</text>
+</svg>
+

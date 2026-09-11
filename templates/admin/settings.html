@@ -1,0 +1,155 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}إعدادات المتجر والحساب | لوحة تحكم وَقّار{% endblock %}
+{% block header_title %}إعدادات متجر وَقّار والسياسات وأمان الحساب{% endblock %}
+
+{% block admin_content %}
+<div class="space-y-8 max-w-4xl mx-auto">
+  
+  <!-- Store Settings Form -->
+  <form action="{{ url_for('admin.settings') }}" method="POST" class="space-y-6">
+    <input type="hidden" name="action" value="update_settings">
+
+    <div class="flex items-center justify-between bg-[#121217] border border-zinc-800 rounded-2xl p-4 sm:p-5">
+      <div>
+        <h1 class="text-lg font-bold text-zinc-100">بيانات ومعلومات المتجر</h1>
+        <p class="text-xs text-zinc-400">تعديل أرقام الهواتف، قنوات التواصل، الموقع الجغرافي، والسياسات</p>
+      </div>
+      <button type="submit" class="gold-gradient-bg text-black font-black text-xs px-6 py-2.5 rounded-xl hover:opacity-90 transition shadow-lg gold-glow">
+        حفظ الإعدادات
+      </button>
+    </div>
+
+    <!-- Contact & Brand Settings -->
+    <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-4">
+      <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider pb-2 border-b border-zinc-800">بيانات الاتصال والهوية</h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+        <div>
+          <label class="block text-zinc-300 font-bold mb-1.5">اسم المتجر *</label>
+          <input type="text" name="store_name" value="{{ settings.get('store_name', 'وَقّار') }}" required class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-zinc-100">
+        </div>
+
+        <div>
+          <label class="block text-zinc-300 font-bold mb-1.5">الشعار اللفظي (Tagline)</label>
+          <input type="text" name="tagline" value="{{ settings.get('tagline', 'أناقتك تبدأ من وَقّار') }}" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-zinc-100">
+        </div>
+
+        <div>
+          <label class="block text-zinc-300 font-bold mb-1.5">رقم الهاتف الرسمي *</label>
+          <input type="text" name="phone" value="{{ settings.get('phone', '0796667505') }}" required class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-zinc-100" dir="ltr">
+        </div>
+
+        <div>
+          <label class="block text-zinc-300 font-bold mb-1.5">رقم الواتساب للطلبات (مع المقدمة) *</label>
+          <input type="text" name="whatsapp" value="{{ settings.get('whatsapp', '+962796667505') }}" required class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-zinc-100" dir="ltr">
+        </div>
+
+        <div>
+          <label class="block text-zinc-300 font-bold mb-1.5">اسم حساب إنستغرام</label>
+          <input type="text" name="instagram" value="{{ settings.get('instagram', '@waqar_fashion199') }}" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-zinc-100" dir="ltr">
+        </div>
+
+        <div>
+          <label class="block text-zinc-300 font-bold mb-1.5">رابط إنستغرام المباشر</label>
+          <input type="url" name="instagram_url" value="{{ settings.get('instagram_url', 'https://instagram.com/waqar_fashion199') }}" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-zinc-100" dir="ltr">
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Location & Working Hours -->
+    <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-4">
+      <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider pb-2 border-b border-zinc-800">الموقع الجغرافي وساعات العمل</h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+        <div>
+          <label class="block text-zinc-300 font-bold mb-1.5">المدينة</label>
+          <input type="text" name="city" value="{{ settings.get('city', 'السلط') }}" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-zinc-100">
+        </div>
+
+        <div>
+          <label class="block text-zinc-300 font-bold mb-1.5">أوقات وساعات العمل</label>
+          <input type="text" name="working_hours" value="{{ settings.get('working_hours', 'يومياً من 10:00 صباحاً حتى 11:00 مساءً') }}" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-zinc-100">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-zinc-300 mb-1.5">العنوان التفصيلي في السلط</label>
+        <input type="text" name="store_address" value="{{ settings.get('store_address', 'السلط، الأردن - بالقرب من مركز المدينة') }}" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-xs text-zinc-100">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-zinc-300 mb-1.5">رابط خرائط جوجل (Google Maps Embed URL)</label>
+        <textarea name="google_maps_embed" rows="2" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-xs text-zinc-400 font-mono" dir="ltr">{{ settings.get('google_maps_embed', '') }}</textarea>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-zinc-300 mb-1.5">الحد الأدنى للشحن المجاني (د.أ)</label>
+        <input type="number" step="1" name="free_delivery_threshold" value="{{ settings.get('free_delivery_threshold', '50') }}" class="w-48 bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-xs text-amber-400 font-bold">
+      </div>
+    </div>
+
+    <!-- Store Policies Texts -->
+    <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-4">
+      <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider pb-2 border-b border-zinc-800">نصوص السياسات والشروط</h2>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block text-zinc-300 font-bold mb-1.5">سياسة الاستبدال والاسترجاع</label>
+          <textarea name="exchange_policy" rows="3" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-zinc-300 leading-relaxed">{{ settings.get('exchange_policy', '') }}</textarea>
+        </div>
+
+        <div>
+          <label class="block text-zinc-300 font-bold mb-1.5">سياسة الخصوصية</label>
+          <textarea name="privacy_policy" rows="3" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-zinc-300 leading-relaxed">{{ settings.get('privacy_policy', '') }}</textarea>
+        </div>
+
+        <div>
+          <label class="block text-zinc-300 font-bold mb-1.5">الشروط والأحكام</label>
+          <textarea name="terms_conditions" rows="3" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-zinc-300 leading-relaxed">{{ settings.get('terms_conditions', '') }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-left">
+      <button type="submit" class="gold-gradient-bg text-black font-black text-xs px-8 py-3 rounded-xl hover:opacity-90 transition shadow-lg gold-glow">
+        حفظ بيانات المتجر
+      </button>
+    </div>
+  </form>
+
+  <!-- Admin Change Password Box -->
+  <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-4">
+    <div class="flex items-center gap-2 pb-2 border-b border-zinc-800">
+      <i class="fas fa-shield-alt text-amber-400 text-base"></i>
+      <h2 class="text-sm font-bold text-zinc-100 uppercase tracking-wider">تغيير كلمة مرور المدير (الأمان)</h2>
+    </div>
+
+    <form action="{{ url_for('admin.settings') }}" method="POST" class="space-y-4 text-xs max-w-md">
+      <input type="hidden" name="action" value="change_password">
+
+      <div>
+        <label class="block text-zinc-300 font-bold mb-1.5">كلمة المرور الحالية *</label>
+        <input type="password" name="old_password" required placeholder="••••••••" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-zinc-100 focus:outline-none focus:border-amber-400 font-mono" dir="ltr">
+      </div>
+
+      <div>
+        <label class="block text-zinc-300 font-bold mb-1.5">كلمة المرور الجديدة *</label>
+        <input type="password" name="new_password" required minlength="6" placeholder="••••••••" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-zinc-100 focus:outline-none focus:border-amber-400 font-mono" dir="ltr">
+      </div>
+
+      <div>
+        <label class="block text-zinc-300 font-bold mb-1.5">تأكيد كلمة المرور الجديدة *</label>
+        <input type="password" name="confirm_password" required minlength="6" placeholder="••••••••" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-zinc-100 focus:outline-none focus:border-amber-400 font-mono" dir="ltr">
+      </div>
+
+      <button type="submit" class="bg-zinc-800 hover:bg-amber-400 hover:text-black text-amber-400 border border-amber-500/40 font-bold py-2.5 px-6 rounded-xl transition text-xs shadow">
+        تحديث كلمة المرور
+      </button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}
+

@@ -1,0 +1,180 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}تفاصيل الطلب {{ order.order_number }} | لوحة تحكم وَقّار{% endblock %}
+{% block header_title %}معاينة وتحديث الطلب {{ order.order_number }}{% endblock %}
+
+{% block admin_content %}
+<div class="space-y-6 max-w-5xl mx-auto">
+  
+  <!-- Header -->
+  <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-xl font-black text-amber-300 font-mono">{{ order.order_number }}</h1>
+        
+        {% if order.status == 'new' %}
+          <span class="bg-blue-950/60 text-blue-300 border border-blue-500/40 px-2.5 py-0.5 rounded text-xs font-bold">جديد</span>
+        {% elif order.status == 'processing' %}
+          <span class="bg-amber-950/60 text-amber-300 border border-amber-500/40 px-2.5 py-0.5 rounded text-xs font-bold">قيد التجهيز</span>
+        {% elif order.status == 'shipped' %}
+          <span class="bg-purple-950/60 text-purple-300 border border-purple-500/40 px-2.5 py-0.5 rounded text-xs font-bold">تم الشحن</span>
+        {% elif order.status == 'delivered' %}
+          <span class="bg-green-950/60 text-green-300 border border-green-500/40 px-2.5 py-0.5 rounded text-xs font-bold">تم التسليم</span>
+        {% else %}
+          <span class="bg-red-950/60 text-red-300 border border-red-500/40 px-2.5 py-0.5 rounded text-xs font-bold">ملغي</span>
+        {% endif %}
+      </div>
+      <p class="text-xs text-zinc-400 mt-1">تاريخ ووقت الطلب: {{ order.created_at }}</p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <a href="{{ url_for('admin.order_invoice', order_id=order.id) }}" target="_blank" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
+        <i class="fas fa-print"></i>
+        <span>طباعة الفاتورة</span>
+      </a>
+      <a href="https://wa.me/962{{ order.customer_phone[-9:] }}?text=مرحباً {{ order.customer_name }}، بخصوص طلبك رقم {{ order.order_number }} من متجر وَقّار..." target="_blank" class="bg-[#128C7E] hover:bg-[#075E54] text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow">
+        <i class="fab fa-whatsapp text-sm"></i>
+        <span>مراسلة العميل</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Items & Calculation (8 cols) -->
+    <div class="lg:col-span-8 space-y-6">
+      
+      <!-- Ordered Items Table -->
+      <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 shadow-sm">
+        <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider pb-3 border-b border-zinc-800 mb-4">المنتجات المطلوبة</h2>
+
+        <div class="overflow-x-auto text-xs">
+          <table class="w-full text-right border-collapse">
+            <thead>
+              <tr class="bg-zinc-900/60 text-zinc-400 border-b border-zinc-800">
+                <th class="p-3 font-bold">المنتج</th>
+                <th class="p-3 font-bold">اللون والمقاس</th>
+                <th class="p-3 font-bold text-center">الكمية</th>
+                <th class="p-3 font-bold text-center">سعر الوحدة</th>
+                <th class="p-3 font-bold text-left">المجموع</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-800/60 text-zinc-300">
+              {% for itm in items %}
+                <tr class="hover:bg-zinc-800/30 transition">
+                  <td class="p-3 flex items-center gap-3">
+                    <img src="{{ itm.product_image or url_for('static', filename='images/placeholder.svg') }}" class="w-10 h-12 object-cover rounded bg-zinc-900 border border-zinc-800">
+                    <span class="font-bold text-zinc-100">{{ itm.product_name }}</span>
+                  </td>
+                  <td class="p-3">
+                    <span class="bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800 font-semibold">{{ itm.color_name }} - {{ itm.size_name }}</span>
+                  </td>
+                  <td class="p-3 text-center font-bold text-zinc-100">{{ itm.quantity }}</td>
+                  <td class="p-3 text-center text-zinc-400">{{ format_price(itm.unit_price) }}</td>
+                  <td class="p-3 text-left font-black text-amber-400">{{ format_price(itm.total_price) }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Breakdown Total -->
+        <div class="border-t border-zinc-800 mt-6 pt-4 space-y-2 text-xs max-w-xs mr-auto">
+          <div class="flex justify-between text-zinc-400">
+            <span>المجموع الفرعي:</span>
+            <span class="font-semibold text-zinc-200">{{ format_price(order.subtotal) }}</span>
+          </div>
+
+          {% if order.discount_amount > 0 %}
+          <div class="flex justify-between text-green-400 font-semibold">
+            <span>الخصم ({{ order.coupon_code or 'كوبون' }}):</span>
+            <span>- {{ format_price(order.discount_amount) }}</span>
+          </div>
+          {% endif %}
+
+          <div class="flex justify-between text-zinc-400">
+            <span>رسوم التوصيل:</span>
+            <span class="font-semibold text-zinc-200">{{ format_price(order.delivery_fee) }}</span>
+          </div>
+
+          <div class="flex justify-between text-base font-black text-amber-400 border-t border-zinc-800 pt-2">
+            <span>المجموع المطلوب تحصيله:</span>
+            <span>{{ format_price(order.total_amount) }}</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Notes if any -->
+      {% if order.notes %}
+        <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-5 text-xs">
+          <span class="text-zinc-400 font-bold block mb-1">ملاحظات العميل:</span>
+          <p class="text-amber-200 bg-zinc-900 p-3 rounded-lg border border-zinc-800">{{ order.notes }}</p>
+        </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Customer & Status Updater (4 cols) -->
+    <div class="lg:col-span-4 space-y-6">
+      
+      <!-- Status Updater Box -->
+      <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-4">
+        <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider pb-2 border-b border-zinc-800">تحديث حالة الطلب</h2>
+
+        <form action="{{ url_for('admin.order_update_status', order_id=order.id) }}" method="POST" class="space-y-4 text-xs">
+          <div>
+            <label class="block text-zinc-300 font-bold mb-1.5">اختر الحالة الجديدة:</label>
+            <select name="status" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 text-zinc-100 font-bold focus:outline-none focus:border-amber-400">
+              <option value="new" {% if order.status == 'new' %}selected{% endif %}>طلب جديد (New)</option>
+              <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>قيد التجهيز (Processing)</option>
+              <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>تم الشحن مع المندوب (Shipped)</option>
+              <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>تم التسليم والتحصيل (Delivered)</option>
+              <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>ملغي (Cancelled)</option>
+            </select>
+          </div>
+
+          <button type="submit" class="w-full gold-gradient-bg text-black font-bold py-3 rounded-xl hover:opacity-90 transition text-xs shadow">
+            تحديث الحالة فوراً
+          </button>
+        </form>
+      </div>
+
+      <!-- Customer Info Box -->
+      <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-3 text-xs">
+        <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider pb-2 border-b border-zinc-800">بيانات التوصيل والعميل</h2>
+
+        <div>
+          <span class="text-zinc-500 block mb-0.5">اسم العميل:</span>
+          <span class="font-bold text-zinc-100 text-sm">{{ order.customer_name }}</span>
+        </div>
+
+        <div>
+          <span class="text-zinc-500 block mb-0.5">رقم الهاتف:</span>
+          <a href="tel:{{ order.customer_phone }}" class="font-bold text-amber-400 hover:underline text-sm" dir="ltr">{{ order.customer_phone }}</a>
+        </div>
+
+        <div>
+          <span class="text-zinc-500 block mb-0.5">منطقة التوصيل / المحافظة:</span>
+          <span class="font-semibold text-zinc-200">{{ order.customer_governorate }}</span>
+        </div>
+
+        <div>
+          <span class="text-zinc-500 block mb-0.5">المدينة والشارع:</span>
+          <span class="font-semibold text-zinc-200">{{ order.customer_city }} - {{ order.customer_address }}</span>
+        </div>
+
+        <div>
+          <span class="text-zinc-500 block mb-0.5">طريقة الدفع:</span>
+          <span class="font-bold text-green-400">الدفع عند الاستلام (نقدًا)</span>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+

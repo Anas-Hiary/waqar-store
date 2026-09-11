@@ -1,0 +1,232 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}لوحة التحكم الرئيسية | متجر وَقّار{% endblock %}
+{% block header_title %}نظرة عامة على أداء المتجر والمبيعات{% endblock %}
+
+{% block admin_content %}
+<div class="space-y-8">
+  
+  <!-- KPI Metrics Cards Grid -->
+  <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    
+    <!-- 1. Total Sales -->
+    <div class="p-5 rounded-2xl bg-[#121217] border border-zinc-800 shadow-sm relative overflow-hidden group hover:border-amber-500/40 transition">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-bold text-zinc-400">إجمالي المبيعات</span>
+        <div class="w-8 h-8 rounded-lg bg-green-500/10 text-green-400 flex items-center justify-center text-sm">
+          <i class="fas fa-coins"></i>
+        </div>
+      </div>
+      <div class="text-xl sm:text-2xl font-black text-amber-400">{{ format_price(total_sales) }}</div>
+      <span class="text-[10px] text-zinc-500 mt-1 block">لجميع الطلبات المؤكدة والمسلمة</span>
+    </div>
+
+    <!-- 2. Total & New Orders -->
+    <div class="p-5 rounded-2xl bg-[#121217] border border-zinc-800 shadow-sm relative overflow-hidden group hover:border-amber-500/40 transition">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-bold text-zinc-400">الطلبات الكلية</span>
+        <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-sm">
+          <i class="fas fa-shopping-cart"></i>
+        </div>
+      </div>
+      <div class="flex items-baseline gap-2">
+        <span class="text-xl sm:text-2xl font-black text-zinc-100">{{ total_orders }}</span>
+        {% if new_orders > 0 %}
+          <span class="text-[11px] font-bold bg-amber-400 text-black px-2 py-0.5 rounded-full animate-pulse">
+            {{ new_orders }} طلب جديد
+          </span>
+        {% endif %}
+      </div>
+      <span class="text-[10px] text-zinc-500 mt-1 block">تتطلب المتابعة والتجهيز</span>
+    </div>
+
+    <!-- 3. Products Status -->
+    <div class="p-5 rounded-2xl bg-[#121217] border border-zinc-800 shadow-sm relative overflow-hidden group hover:border-amber-500/40 transition">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-bold text-zinc-400">المنتجات المعروضة</span>
+        <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center text-sm">
+          <i class="fas fa-tshirt"></i>
+        </div>
+      </div>
+      <div class="text-xl sm:text-2xl font-black text-zinc-100">{{ published_products }} <span class="text-xs text-zinc-500 font-normal">من {{ total_products }}</span></div>
+      <span class="text-[10px] text-zinc-500 mt-1 block">{{ hidden_products }} منتج مخفي حالياً</span>
+    </div>
+
+    <!-- 4. Stock Alerts -->
+    <div class="p-5 rounded-2xl bg-[#121217] border border-zinc-800 shadow-sm relative overflow-hidden group hover:border-amber-500/40 transition">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-bold text-zinc-400">تنبيهات المخزون</span>
+        <div class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center text-sm">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+      </div>
+      <div class="flex items-baseline gap-2">
+        <span class="text-xl sm:text-2xl font-black text-red-400">{{ out_of_stock }}</span>
+        <span class="text-xs text-zinc-400 font-bold">نفد</span>
+        <span class="text-zinc-600">|</span>
+        <span class="text-xl sm:text-2xl font-black text-amber-400">{{ low_stock }}</span>
+        <span class="text-xs text-zinc-400 font-bold">منخفض</span>
+      </div>
+      <a href="{{ url_for('admin.inventory_list', status='low') }}" class="text-[10px] text-amber-400 hover:underline mt-1 block">عرض تفاصيل المخزون &larr;</a>
+    </div>
+
+  </div>
+
+  <!-- Charts & Graphs Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <!-- Order Status Doughnut Chart (1 col) -->
+    <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+      <h3 class="font-bold text-sm text-zinc-100 mb-4 flex items-center gap-2">
+        <i class="fas fa-chart-pie text-amber-400"></i>
+        <span>توزيع حالات الطلبات</span>
+      </h3>
+      <div class="relative h-56 flex items-center justify-center">
+        <canvas id="orderStatusChart"></canvas>
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-[11px] text-zinc-400 mt-4 pt-4 border-t border-zinc-800">
+        <div>جديد: <strong class="text-blue-400">{{ status_dict.get('new', 0) }}</strong></div>
+        <div>قيد التجهيز: <strong class="text-amber-400">{{ status_dict.get('processing', 0) }}</strong></div>
+        <div>تم الشحن: <strong class="text-purple-400">{{ status_dict.get('shipped', 0) }}</strong></div>
+        <div>تم التسليم: <strong class="text-green-400">{{ status_dict.get('delivered', 0) }}</strong></div>
+      </div>
+    </div>
+
+    <!-- Top Selling Products (2 cols) -->
+    <div class="lg:col-span-2 bg-[#121217] border border-zinc-800 rounded-2xl p-6 shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-sm text-zinc-100 flex items-center gap-2">
+          <i class="fas fa-crown text-amber-400"></i>
+          <span>المنتجات الأكثر مبيعاً</span>
+        </h3>
+        <a href="{{ url_for('admin.products_list') }}" class="text-xs text-amber-400 hover:underline">عرض كل المنتجات</a>
+      </div>
+
+      {% if top_products %}
+        <div class="overflow-x-auto text-xs">
+          <table class="w-full text-right border-collapse">
+            <thead>
+              <tr class="text-zinc-500 border-b border-zinc-800 pb-2">
+                <th class="pb-2 font-medium">المنتج</th>
+                <th class="pb-2 font-medium">التصنيف</th>
+                <th class="pb-2 font-medium text-center">الكمية المباعة</th>
+                <th class="pb-2 font-medium text-left">إجمالي الإيراد</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-800/60">
+              {% for p in top_products %}
+                <tr class="hover:bg-zinc-800/30 transition">
+                  <td class="py-3 flex items-center gap-3">
+                    <img src="{{ p.image or url_for('static', filename='images/placeholder.svg') }}" class="w-8 h-10 object-cover rounded bg-zinc-900">
+                    <span class="font-semibold text-zinc-200">{{ p.name }}</span>
+                  </td>
+                  <td class="py-3 text-zinc-400">{{ p.category_name or 'ملابس رجالية' }}</td>
+                  <td class="py-3 text-center font-bold text-amber-300">{{ p.total_sold }} قطعة</td>
+                  <td class="py-3 text-left font-black text-green-400">{{ format_price(p.total_revenue) }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-xs text-zinc-500 py-8 text-center">لا توجد مبيعات مسجلة حتى الآن.</p>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Recent Orders Table -->
+  <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 shadow-sm">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h3 class="font-bold text-base text-zinc-100">أحدث الطلبات الواردة</h3>
+        <p class="text-xs text-zinc-400 mt-0.5">آخر الطلبات المسجلة في المتجر مع إمكانية تحديث الحالة مباشرة</p>
+      </div>
+      <a href="{{ url_for('admin.orders_list') }}" class="gold-gradient-bg text-black font-bold text-xs px-3 py-1.5 rounded-lg hover:opacity-90 transition">
+        إدارة كافة الطلبات
+      </a>
+    </div>
+
+    {% if recent_orders %}
+      <div class="overflow-x-auto text-xs">
+        <table class="w-full text-right border-collapse">
+          <thead>
+            <tr class="text-zinc-500 border-b border-zinc-800 pb-3">
+              <th class="pb-3 font-medium">رقم الطلب</th>
+              <th class="pb-3 font-medium">العميل</th>
+              <th class="pb-3 font-medium">الهاتف</th>
+              <th class="pb-3 font-medium">المحافظة</th>
+              <th class="pb-3 font-medium">المبلغ</th>
+              <th class="pb-3 font-medium">الحالة</th>
+              <th class="pb-3 font-medium text-left">إجراءات</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-800/60">
+            {% for o in recent_orders %}
+              <tr class="hover:bg-zinc-800/40 transition">
+                <td class="py-3 font-mono font-bold text-amber-300">{{ o.order_number }}</td>
+                <td class="py-3 font-semibold text-zinc-200">{{ o.customer_name }}</td>
+                <td class="py-3 text-zinc-400" dir="ltr">{{ o.customer_phone }}</td>
+                <td class="py-3 text-zinc-300">{{ o.customer_governorate }}</td>
+                <td class="py-3 font-black text-amber-400">{{ format_price(o.total_amount) }}</td>
+                <td class="py-3">
+                  <form action="{{ url_for('admin.order_update_status', order_id=o.id) }}" method="POST" class="inline">
+                    <select name="status" onchange="this.form.submit()" class="bg-zinc-900 border border-zinc-700 text-[11px] rounded px-2 py-1 font-bold text-zinc-200 focus:outline-none">
+                      <option value="new" {% if o.status == 'new' %}selected{% endif %}>جديد</option>
+                      <option value="processing" {% if o.status == 'processing' %}selected{% endif %}>قيد التجهيز</option>
+                      <option value="shipped" {% if o.status == 'shipped' %}selected{% endif %}>تم الشحن</option>
+                      <option value="delivered" {% if o.status == 'delivered' %}selected{% endif %}>تم التسليم</option>
+                      <option value="cancelled" {% if o.status == 'cancelled' %}selected{% endif %}>ملغي</option>
+                    </select>
+                  </form>
+                </td>
+                <td class="py-3 text-left">
+                  <a href="{{ url_for('admin.order_detail', order_id=o.id) }}" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1 rounded border border-zinc-700 text-[11px] font-bold transition">
+                    عرض الطلب
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-xs text-zinc-500 py-8 text-center">لا توجد طلبات مسجلة بعد.</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Status Doughnut Chart Setup
+  const ctx = document.getElementById('orderStatusChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['جديد', 'قيد التجهيز', 'تم الشحن', 'تم التسليم', 'ملغي'],
+      datasets: [{
+        data: [
+          {{ status_dict.get('new', 0) }},
+          {{ status_dict.get('processing', 0) }},
+          {{ status_dict.get('shipped', 0) }},
+          {{ status_dict.get('delivered', 0) }},
+          {{ status_dict.get('cancelled', 0) }}
+        ],
+        backgroundColor: ['#3b82f6', '#f59e0b', '#a855f7', '#22c55e', '#ef4444'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      cutout: '70%'
+    }
+  });
+</script>
+{% endblock %}
+

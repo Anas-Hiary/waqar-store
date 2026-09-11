@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>فاتورة طلب {{ order.order_number }} | متجر وَقّار</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700;800;900&display=swap');
+    * { font-family: 'Tajawal', sans-serif; box-sizing: border-box; }
+    body { background: #f9fafb; color: #111827; padding: 40px; margin: 0; }
+    .invoice-card { background: #fff; max-width: 800px; margin: 0 auto; padding: 40px; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #c5a059; padding-bottom: 20px; margin-bottom: 30px; }
+    .logo-title { font-size: 28px; font-weight: 900; color: #111827; margin: 0; }
+    .logo-sub { font-size: 13px; color: #c5a059; font-weight: 700; margin: 2px 0 0 0; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; font-size: 13px; line-height: 1.6; }
+    .info-box { background: #f3f4f6; padding: 15px; border-radius: 8px; }
+    .info-title { font-weight: 700; color: #374151; margin-bottom: 6px; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 13px; }
+    th { background: #111827; color: #f9fafb; text-align: right; padding: 10px 12px; font-weight: 700; }
+    td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
+    .totals-box { margin-right: auto; max-width: 300px; font-size: 13px; }
+    .total-row { display: flex; justify-content: space-between; padding: 6px 0; }
+    .total-grand { border-top: 2px solid #111827; font-size: 16px; font-weight: 900; color: #111827; margin-top: 6px; padding-top: 8px; }
+    .footer-note { text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 40px; }
+    .print-btn { display: inline-block; background: #c5a059; color: #000; font-weight: bold; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; margin-bottom: 20px; text-decoration: none; font-size: 14px; }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .invoice-card { border: none; box-shadow: none; padding: 0; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div style="text-align: center;" class="no-print">
+    <button onclick="window.print()" class="print-btn">🖨️ طباعة الفاتورة الآن</button>
+  </div>
+
+  <div class="invoice-card">
+    
+    <div class="header">
+      <div>
+        <h1 class="logo-title">وَقّار</h1>
+        <p class="logo-sub">أزياء وملابس رجالية فاخرة</p>
+        <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">السلط، الأردن | هاتف: {{ settings.get('phone', '0796667505') }}</p>
+      </div>
+      <div style="text-align: left;">
+        <h2 style="font-size: 20px; margin: 0; color: #111827;">فاتورة بيع</h2>
+        <p style="font-family: monospace; font-size: 14px; font-weight: bold; color: #c5a059; margin: 4px 0 0 0;">{{ order.order_number }}</p>
+        <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">التاريخ: {{ order.created_at[:10] }}</p>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-box">
+        <div class="info-title">بيانات العميل والتوصيل</div>
+        <div><strong>الاسم:</strong> {{ order.customer_name }}</div>
+        <div><strong>الهاتف:</strong> <span dir="ltr">{{ order.customer_phone }}</span></div>
+        <div><strong>المحافظة:</strong> {{ order.customer_governorate }}</div>
+        <div><strong>العنوان:</strong> {{ order.customer_city }} - {{ order.customer_address }}</div>
+      </div>
+
+      <div class="info-box">
+        <div class="info-title">معلومات الطلب والدفع</div>
+        <div><strong>رقم الطلب:</strong> {{ order.order_number }}</div>
+        <div><strong>طريقة الدفع:</strong> الدفع عند الاستلام (COD)</div>
+        <div><strong>حالة الطلب:</strong> {{ order.status }}</div>
+        {% if order.notes %}<div><strong>ملاحظات:</strong> {{ order.notes }}</div>{% endif %}
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>اسم القطعة الرجالية</th>
+          <th>اللون والمقاس</th>
+          <th style="text-align: center;">الكمية</th>
+          <th style="text-align: center;">السعر الفردي</th>
+          <th style="text-align: left;">الإجمالي</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for itm in items %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td><strong>{{ itm.product_name }}</strong></td>
+            <td>{{ itm.color_name }} - مقاس {{ itm.size_name }}</td>
+            <td style="text-align: center;">{{ itm.quantity }}</td>
+            <td style="text-align: center;">{{ "%.2f"|format(itm.unit_price) }} د.أ</td>
+            <td style="text-align: left; font-weight: bold;">{{ "%.2f"|format(itm.total_price) }} د.أ</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="totals-box">
+      <div class="total-row">
+        <span>المجموع الفرعي:</span>
+        <span>{{ "%.2f"|format(order.subtotal) }} د.أ</span>
+      </div>
+      {% if order.discount_amount > 0 %}
+      <div class="total-row" style="color: #059669; font-weight: bold;">
+        <span>الخصم المطبق:</span>
+        <span>- {{ "%.2f"|format(order.discount_amount) }} د.أ</span>
+      </div>
+      {% endif %}
+      <div class="total-row">
+        <span>أجور التوصيل:</span>
+        <span>{{ "%.2f"|format(order.delivery_fee) }} د.أ</span>
+      </div>
+      <div class="total-row total-grand">
+        <span>المجموع الإجمالي:</span>
+        <span>{{ "%.2f"|format(order.total_amount) }} د.أ</span>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      شكراً لاختياركم متجر <strong>وَقّار</strong> - السلط، الأردن | خدمة العملاء: {{ settings.get('whatsapp', '+962796667505') }}
+    </div>
+
+  </div>
+
+</body>
+</html>
+

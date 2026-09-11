@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}إتمام الطلب | متجر وَقّار للملابس الرجالية{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  
+  <div class="pb-6 border-b border-zinc-800 mb-8 text-center max-w-2xl mx-auto">
+    <span class="text-xs font-bold text-amber-400 uppercase tracking-widest">خطوة واحدة لإكمال طلبك</span>
+    <h1 class="text-2xl sm:text-3xl font-black text-zinc-100 mt-1">إتمام الطلب (الدفع عند الاستلام)</h1>
+    <p class="text-xs text-zinc-400 mt-1">املأ بيانات التوصيل وسنقوم بتجهيز وشحن ملابسك الرجالية فوراً</p>
+  </div>
+
+  <form action="{{ url_for('store.checkout') }}" method="POST" id="checkout-form">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-6xl mx-auto">
+      
+      <!-- Customer Information (7 cols desktop) -->
+      <div class="lg:col-span-7 bg-[#121217] border border-zinc-800 rounded-2xl p-6 sm:p-8 space-y-6">
+        
+        <div class="flex items-center gap-2 pb-4 border-b border-zinc-800">
+          <div class="w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">1</div>
+          <h2 class="font-bold text-base text-zinc-100">بيانات المستلم والتوصيل</h2>
+        </div>
+
+        <!-- Full Name -->
+        <div>
+          <label class="block text-xs font-bold text-zinc-300 mb-1.5">الاسم الكامل *</label>
+          <input type="text" name="full_name" value="{{ current_customer.name if current_customer else '' }}" placeholder="أدخل اسمك الكريم" required class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs sm:text-sm text-zinc-100 focus:outline-none focus:border-amber-400">
+        </div>
+
+        <!-- Phone Number -->
+        <div>
+          <label class="block text-xs font-bold text-zinc-300 mb-1.5">رقم الهاتف (للتواصل وتأكيد الشحن) *</label>
+          <div class="relative">
+            <input type="tel" name="phone" value="{{ current_customer.phone if current_customer else '' }}" placeholder="0796667505 أو 078XXXXXXX" required class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs sm:text-sm text-zinc-100 focus:outline-none focus:border-amber-400" dir="ltr">
+          </div>
+          <span class="text-[11px] text-zinc-500 mt-1 block">يرجى كتابة رقم هاتف أردني صحيح يبدأ بـ 07 ليتواصل معك مندوب التوصيل.</span>
+        </div>
+
+        <!-- Governorate & Delivery Zone Selector -->
+        <div>
+          <label class="block text-xs font-bold text-zinc-300 mb-1.5">المحافظة / منطقة التوصيل *</label>
+          <select name="governorate_id" id="governorate-select" onchange="updateDeliveryFee(this)" required class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs sm:text-sm text-zinc-100 focus:outline-none focus:border-amber-400">
+            <option value="" disabled selected>-- اختر المحافظة لحساب رسوم التوصيل --</option>
+            {% for zone in delivery_zones %}
+              <option value="{{ zone.id }}" data-fee="{{ zone.fee }}" data-time="{{ zone.estimated_time }}">
+                {{ zone.governorate_name }} (رسوم التوصيل: {{ format_price(zone.fee) }} - مدة التوصيل: {{ zone.estimated_time }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- City & Street Address -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-zinc-300 mb-1.5">المدينة / المنطقة بالتحديد *</label>
+            <input type="text" name="city" value="{{ current_customer.city if current_customer else '' }}" placeholder="مثال: السلط - وسط البلد، أو عمان - خلدا" required class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs sm:text-sm text-zinc-100 focus:outline-none focus:border-amber-400">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-zinc-300 mb-1.5">العنوان التفصيلي / الشارع *</label>
+            <input type="text" name="address" value="{{ current_customer.address if current_customer else '' }}" placeholder="اسم الشارع، رقم البناية، أو معلم بارز" required class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs sm:text-sm text-zinc-100 focus:outline-none focus:border-amber-400">
+          </div>
+        </div>
+
+        <!-- Order Notes -->
+        <div>
+          <label class="block text-xs font-bold text-zinc-300 mb-1.5">ملاحظات إضافية لمندوب التوصيل (اختياري)</label>
+          <textarea name="notes" rows="2" placeholder="أي تعليمات خاصة بالاستلام أو الوقت المفضل..." class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-zinc-100 focus:outline-none focus:border-amber-400"></textarea>
+        </div>
+
+        <!-- Payment Method Choice (COD) -->
+        <div class="pt-4 border-t border-zinc-800">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">2</div>
+            <h2 class="font-bold text-base text-zinc-100">طريقة الدفع</h2>
+          </div>
+
+          <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <input type="radio" name="payment_method" value="cash_on_delivery" checked class="text-amber-500 focus:ring-0">
+              <div>
+                <span class="font-bold text-sm text-amber-300 block">الدفع نقدًا عند الاستلام (Cash on Delivery)</span>
+                <span class="text-[11px] text-zinc-400">ادفع قيمة الطلب لمندوب التوصيل بعد استلام ومعاينة ملابسك.</span>
+              </div>
+            </div>
+            <i class="fas fa-hand-holding-usd text-amber-400 text-2xl"></i>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Order Review & Final Total (5 cols desktop) -->
+      <div class="lg:col-span-5">
+        <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-6 space-y-6 sticky top-24 shadow-xl">
+          
+          <h3 class="font-bold text-base text-zinc-100 pb-3 border-b border-zinc-800">ملخص المنتجات والطلب</h3>
+
+          <!-- Items Mini List -->
+          <div class="space-y-3 max-h-60 overflow-y-auto pr-1">
+            {% for item in cart_items %}
+              <div class="flex items-center justify-between gap-3 text-xs pb-3 border-b border-zinc-800/60 last:border-0">
+                <div class="flex items-center gap-3">
+                  <img src="{{ item.image }}" alt="{{ item.name }}" class="w-12 h-14 object-cover rounded bg-zinc-900 border border-zinc-700/50">
+                  <div>
+                    <h4 class="font-semibold text-zinc-200 line-clamp-1">{{ item.name }}</h4>
+                    <span class="text-[10px] text-zinc-400 block">{{ item.color }} | مقاس: {{ item.size }} &times; {{ item.quantity }}</span>
+                  </div>
+                </div>
+                <span class="font-bold text-amber-400 whitespace-nowrap">{{ format_price(item.item_total) }}</span>
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- Totals calculation -->
+          <div class="space-y-2.5 text-xs pt-3 border-t border-zinc-800">
+            <div class="flex justify-between text-zinc-400">
+              <span>المجموع الفرعي:</span>
+              <span class="font-bold text-zinc-200" id="subtotal-val" data-subtotal="{{ subtotal }}">{{ format_price(subtotal) }}</span>
+            </div>
+
+            {% if discount_amount > 0 %}
+            <div class="flex justify-between text-green-400 font-semibold">
+              <span>الخصم المطبق ({{ applied_coupon.code }}):</span>
+              <span id="discount-val" data-discount="{{ discount_amount }}">- {{ format_price(discount_amount) }}</span>
+            </div>
+            {% endif %}
+
+            <div class="flex justify-between text-zinc-400">
+              <span>أجور التوصيل:</span>
+              <span class="font-bold text-zinc-200" id="delivery-fee-display">يرجى اختيار المحافظة</span>
+            </div>
+
+            <div class="flex justify-between text-lg font-black text-amber-400 border-t border-zinc-800 pt-3">
+              <span>المجموع الكلي المطلوب:</span>
+              <span id="final-total-display">{{ format_price(subtotal - discount_amount) }}</span>
+            </div>
+          </div>
+
+          <!-- Submit Order Button -->
+          <button type="submit" class="w-full gold-gradient-bg text-black font-black text-base py-4 px-6 rounded-xl hover:opacity-90 transition shadow-xl gold-glow flex items-center justify-center gap-2">
+            <i class="fas fa-check-circle"></i>
+            <span>تأكيد الطلب الآن</span>
+          </button>
+
+          <p class="text-[11px] text-zinc-500 text-center leading-relaxed">
+            بالضغط على تأكيد الطلب، سيتم تسجيل طلبك فوراً والتواصل معك لتأكيده وتوصيله لباب منزلك.
+          </p>
+
+        </div>
+      </div>
+
+    </div>
+  </form>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function updateDeliveryFee(select) {
+    const selectedOption = select.options[select.selectedIndex];
+    const fee = parseFloat(selectedOption.dataset.fee || 0);
+    const subtotal = parseFloat(document.getElementById('subtotal-val').dataset.subtotal || 0);
+    const discount = parseFloat(document.getElementById('discount-val')?.dataset.discount || 0);
+
+    const feeDisplay = document.getElementById('delivery-fee-display');
+    const totalDisplay = document.getElementById('final-total-display');
+
+    feeDisplay.textContent = fee.toFixed(2) + ' د.أ';
+    const finalTotal = Math.max(0, (subtotal - discount)) + fee;
+    totalDisplay.textContent = finalTotal.toFixed(2) + ' د.أ';
+  }
+</script>
+{% endblock %}
+

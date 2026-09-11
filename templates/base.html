@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}وَقّار | أزياء وملابس رجالية في السلط – الأردن{% endblock %}</title>
+  
+  <!-- Meta & SEO -->
+  <meta name="description" content="{% block meta_description %}تسوق أحدث الأزياء والملابس الرجالية من متجر وَقّار في السلط، الأردن. تشكيلات رجالية راقية، جودة استثنائية، والدفع عند الاستلام مع توصيل سريع لجميع المحافظات.{% endblock %}">
+  <meta name="keywords" content="ملابس رجالية, ازياء رجالية, متجر وقار, السلط, الاردن, قمصان رجالية, بناطيل, بدلات رجالية, جينز رجالي, تسوق اونلاين">
+  <meta property="og:title" content="وَقّار | أزياء وملابس رجالية في السلط">
+  <meta property="og:description" content="أناقتك تبدأ من وَقّار - تشكيلة رجالية راقية في السلط والأردن">
+  <meta property="og:type" content="website">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            waqar: {
+              gold: '#c5a059',
+              goldLight: '#dfc282',
+              goldDark: '#9f7e34',
+              dark: '#0a0a0c',
+              card: '#121216',
+              border: '#22222a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-[#0a0a0c] text-zinc-100 min-h-screen flex flex-col antialiased selection:bg-amber-500/30 selection:text-amber-200">
+
+  <!-- 1. Announcement Bar -->
+  {% if settings.get('announcement_bar') %}
+  <div class="bg-gradient-to-r from-zinc-900 via-amber-950/40 to-zinc-900 text-amber-300 text-xs py-2 px-4 text-center font-medium border-b border-amber-500/20">
+    <div class="container mx-auto flex items-center justify-between">
+      <div class="hidden sm:flex items-center gap-4 text-zinc-400">
+        <span><i class="fas fa-map-marker-alt text-amber-400 ml-1"></i> السلط، الأردن</span>
+        <a href="tel:{{ settings.get('phone', '0796667505') }}" class="hover:text-amber-300 transition"><i class="fas fa-phone-alt text-amber-400 ml-1"></i> {{ settings.get('phone', '0796667505') }}</a>
+      </div>
+      <div class="flex-1 text-center font-semibold tracking-wide">
+        {{ settings.get('announcement_bar') }}
+      </div>
+      <div class="hidden sm:flex items-center gap-3">
+        <a href="https://wa.me/{{ settings.get('whatsapp', '+962796667505')|replace('+', '')|replace(' ', '') }}" target="_blank" class="text-zinc-300 hover:text-green-400 transition text-sm">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+        <a href="{{ settings.get('instagram_url', 'https://instagram.com/waqar_fashion199') }}" target="_blank" class="text-zinc-300 hover:text-pink-400 transition text-sm">
+          <i class="fab fa-instagram"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 2. Sticky Main Header -->
+  <header class="sticky top-0 z-40 bg-[#0e0e12]/95 backdrop-blur-md border-b border-zinc-800/80 transition-all duration-300">
+    <div class="container mx-auto px-4 py-3.5 flex items-center justify-between gap-4">
+      
+      <!-- Mobile Menu Button & Brand -->
+      <div class="flex items-center gap-3">
+        <button type="button" onclick="openMobileMenu()" class="lg:hidden text-zinc-300 hover:text-amber-400 p-2 text-xl focus:outline-none">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Brand Logo -->
+        <a href="{{ url_for('store.index') }}" class="flex items-center gap-2 group">
+          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-700/10 border border-amber-500/40 flex items-center justify-center text-amber-400 text-xl font-black group-hover:border-amber-400 transition">
+            وَ
+          </div>
+          <div>
+            <span class="text-2xl font-black tracking-wider gold-gradient-text">وَقّار</span>
+            <span class="block text-[10px] text-zinc-400 font-medium tracking-widest -mt-1">أزياء رجالية</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Desktop Navigation Links -->
+      <nav class="hidden lg:flex items-center gap-7 text-sm font-semibold">
+        <a href="{{ url_for('store.index') }}" class="text-zinc-200 hover:text-amber-400 transition py-1">الرئيسية</a>
+        <a href="{{ url_for('store.shop') }}" class="text-zinc-200 hover:text-amber-400 transition py-1">المتجر</a>
+        <a href="{{ url_for('store.shop', filter='new') }}" class="text-zinc-200 hover:text-amber-400 transition py-1">وصل حديثاً</a>
+        <a href="{{ url_for('store.shop', filter='offer') }}" class="text-amber-400 hover:text-amber-300 transition py-1 flex items-center gap-1">
+          <i class="fas fa-tag text-xs"></i> العروض
+        </a>
+        <a href="{{ url_for('store.track_order') }}" class="text-zinc-200 hover:text-amber-400 transition py-1">تتبع طلبك</a>
+        <a href="{{ url_for('store.about') }}" class="text-zinc-200 hover:text-amber-400 transition py-1">من نحن</a>
+        <a href="{{ url_for('store.contact') }}" class="text-zinc-200 hover:text-amber-400 transition py-1">تواصل معنا</a>
+      </nav>
+
+      <!-- Header Action Icons -->
+      <div class="flex items-center gap-2.5 sm:gap-4">
+        
+        <!-- Search Button -->
+        <button type="button" onclick="openSearchModal()" class="text-zinc-300 hover:text-amber-400 p-2 text-lg transition" title="بحث">
+          <i class="fas fa-search"></i>
+        </button>
+
+        <!-- Wishlist -->
+        <a href="{{ url_for('store.wishlist') }}" class="text-zinc-300 hover:text-amber-400 p-2 text-lg transition relative" title="المفضلة">
+          <i class="far fa-heart"></i>
+          <span class="wishlist-counter absolute top-1 right-1 bg-amber-500 text-black text-[10px] font-black w-4 h-4 rounded-full items-center justify-center {{ 'inline-flex' if wishlist_count > 0 else 'hidden' }}">
+            {{ wishlist_count }}
+          </span>
+        </a>
+
+        <!-- Shopping Cart -->
+        <a href="{{ url_for('store.cart_page') }}" class="text-zinc-300 hover:text-amber-400 p-2 text-lg transition relative" title="سلة الشراء">
+          <i class="fas fa-shopping-bag"></i>
+          <span class="cart-counter absolute top-1 right-1 bg-amber-400 text-black text-[10px] font-black w-4 h-4 rounded-full items-center justify-center {{ 'inline-flex' if cart_count > 0 else 'hidden' }}">
+            {{ cart_count }}
+          </span>
+        </a>
+
+        <!-- User Account -->
+        {% if current_customer %}
+          <a href="{{ url_for('auth.profile') }}" class="hidden sm:flex items-center gap-2 text-xs font-semibold text-zinc-300 hover:text-amber-400 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-full transition">
+            <i class="fas fa-user-check text-amber-400"></i>
+            <span>{{ current_customer.name.split()[0] }}</span>
+          </a>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}" class="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-zinc-300 hover:text-amber-400 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-full transition">
+            <i class="far fa-user text-amber-400"></i>
+            <span>حسابي</span>
+          </a>
+        {% endif %}
+
+        <!-- Direct WhatsApp Contact Quick Link -->
+        <a href="https://wa.me/{{ settings.get('whatsapp', '+962796667505')|replace('+', '')|replace(' ', '') }}" target="_blank" class="hidden md:flex items-center gap-1.5 bg-green-950/40 border border-green-500/40 text-green-400 text-xs font-bold px-3 py-1.5 rounded-full hover:bg-green-600 hover:text-white transition">
+          <i class="fab fa-whatsapp text-sm"></i>
+          <span>واتساب</span>
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  <div class="container mx-auto px-4 mt-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-4 p-4 rounded-lg text-sm font-semibold flex items-center justify-between border {% if category == 'success' %}bg-green-950/60 border-green-500/50 text-green-200{% elif category == 'danger' or category == 'error' %}bg-red-950/60 border-red-500/50 text-red-200{% elif category == 'warning' %}bg-amber-950/60 border-amber-500/50 text-amber-200{% else %}bg-zinc-800 border-zinc-700 text-zinc-200{% endif %}">
+            <div class="flex items-center gap-2">
+              <i class="fas {% if category == 'success' %}fa-check-circle text-green-400{% elif category == 'danger' or category == 'error' %}fa-exclamation-circle text-red-400{% else %}fa-info-circle text-amber-400{% endif %}"></i>
+              <span>{{ message }}</span>
+            </div>
+            <button type="button" onclick="this.parentElement.remove()" class="text-zinc-400 hover:text-zinc-100"><i class="fas fa-times"></i></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Content Block -->
+  <main class="flex-1 pb-16 lg:pb-8">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Floating WhatsApp Action -->
+  <a href="https://wa.me/{{ settings.get('whatsapp', '+962796667505')|replace('+', '')|replace(' ', '') }}" target="_blank" class="floating-whatsapp" title="تواصل معنا عبر واتساب">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+
+  <!-- Mobile Bottom Sticky Navigation -->
+  <div class="mobile-bottom-nav lg:hidden">
+    <a href="{{ url_for('store.index') }}" class="flex flex-col items-center justify-center text-zinc-400 hover:text-amber-400 transition text-[11px] font-medium">
+      <i class="fas fa-home text-base mb-0.5"></i>
+      <span>الرئيسية</span>
+    </a>
+    <a href="{{ url_for('store.shop') }}" class="flex flex-col items-center justify-center text-zinc-400 hover:text-amber-400 transition text-[11px] font-medium">
+      <i class="fas fa-tshirt text-base mb-0.5"></i>
+      <span>المتجر</span>
+    </a>
+    <button type="button" onclick="openSearchModal()" class="flex flex-col items-center justify-center text-zinc-400 hover:text-amber-400 transition text-[11px] font-medium">
+      <i class="fas fa-search text-base mb-0.5"></i>
+      <span>البحث</span>
+    </button>
+    <a href="{{ url_for('store.cart_page') }}" class="flex flex-col items-center justify-center text-zinc-400 hover:text-amber-400 transition text-[11px] font-medium relative">
+      <i class="fas fa-shopping-bag text-base mb-0.5"></i>
+      <span class="cart-counter absolute -top-1.5 right-2 bg-amber-400 text-black text-[9px] font-black w-3.5 h-3.5 rounded-full items-center justify-center {{ 'inline-flex' if cart_count > 0 else 'hidden' }}">
+        {{ cart_count }}
+      </span>
+      <span>السلة</span>
+    </a>
+    <a href="{{ url_for('auth.profile') if current_customer else url_for('auth.login') }}" class="flex flex-col items-center justify-center text-zinc-400 hover:text-amber-400 transition text-[11px] font-medium">
+      <i class="far fa-user text-base mb-0.5"></i>
+      <span>حسابي</span>
+    </a>
+  </div>
+
+  <!-- Search Modal -->
+  <div id="search-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-start justify-center pt-20 px-4 hidden transition-opacity">
+    <div class="bg-[#121217] border border-amber-500/30 rounded-2xl w-full max-w-2xl p-6 shadow-2xl relative">
+      <button type="button" onclick="closeSearchModal()" class="absolute top-4 left-4 text-zinc-400 hover:text-amber-400 text-xl">
+        <i class="fas fa-times"></i>
+      </button>
+
+      <h3 class="text-lg font-bold gold-gradient-text mb-4 text-right">ابحث في متجر وَقّار للأزياء الرجالية</h3>
+
+      <form action="{{ url_for('store.shop') }}" method="GET" class="relative">
+        <input type="text" id="search-modal-input" name="q" placeholder="ابحث عن قميص، بدلة، جينز، جاكيت..." oninput="handleSearchInput(this.value)" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3.5 pl-12 text-sm text-zinc-100 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition text-right">
+        <button type="submit" class="absolute left-3 top-3.5 text-amber-400 hover:text-amber-300 text-lg">
+          <i class="fas fa-search"></i>
+        </button>
+      </form>
+
+      <!-- Live Suggestions List -->
+      <div id="search-suggestions-container" class="mt-4 max-h-72 overflow-y-auto hidden">
+        <!-- Filled via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Drawer Menu -->
+  <div id="menu-backdrop" class="drawer-backdrop" onclick="closeMobileMenu()"></div>
+  <div id="mobile-menu-drawer" class="drawer-content p-6">
+    <div class="flex items-center justify-between pb-4 border-b border-zinc-800">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold">وَ</div>
+        <span class="text-xl font-bold gold-gradient-text">وَقّار</span>
+      </div>
+      <button type="button" onclick="closeMobileMenu()" class="text-zinc-400 hover:text-zinc-100 text-xl">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Links -->
+    <div class="py-4 flex flex-col gap-2 font-medium">
+      <a href="{{ url_for('store.index') }}" class="p-2.5 rounded-lg hover:bg-zinc-800 text-zinc-200 hover:text-amber-400 transition">الرئيسية</a>
+      <a href="{{ url_for('store.shop') }}" class="p-2.5 rounded-lg hover:bg-zinc-800 text-zinc-200 hover:text-amber-400 transition">جميع الملابس الرجالية</a>
+      <a href="{{ url_for('store.shop', filter='new') }}" class="p-2.5 rounded-lg hover:bg-zinc-800 text-zinc-200 hover:text-amber-400 transition">وصل حديثاً</a>
+      <a href="{{ url_for('store.shop', filter='offer') }}" class="p-2.5 rounded-lg hover:bg-zinc-800 text-amber-400 transition">العروض والخصومات</a>
+      <a href="{{ url_for('store.track_order') }}" class="p-2.5 rounded-lg hover:bg-zinc-800 text-zinc-200 hover:text-amber-400 transition">تتبع الطلب</a>
+      <a href="{{ url_for('store.wishlist') }}" class="p-2.5 rounded-lg hover:bg-zinc-800 text-zinc-200 hover:text-amber-400 transition">المفضلة</a>
+      <a href="{{ url_for('store.about') }}" class="p-2.5 rounded-lg hover:bg-zinc-800 text-zinc-200 hover:text-amber-400 transition">من نحن</a>
+      <a href="{{ url_for('store.contact') }}" class="p-2.5 rounded-lg hover:bg-zinc-800 text-zinc-200 hover:text-amber-400 transition">تواصل معنا</a>
+    </div>
+
+    <!-- Categories in mobile menu -->
+    <div class="pt-4 border-t border-zinc-800">
+      <h4 class="text-xs font-bold text-zinc-400 mb-2 uppercase tracking-wider">التصنيفات الرجالية</h4>
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        {% for cat in nav_categories %}
+          <a href="{{ url_for('store.shop', category=cat.slug) }}" class="p-2 rounded bg-zinc-900 border border-zinc-800/80 text-zinc-300 hover:text-amber-400 hover:border-amber-500/40 transition">
+            {{ cat.name }}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Contact details in mobile menu -->
+    <div class="mt-6 pt-4 border-t border-zinc-800 text-xs text-zinc-400 flex flex-col gap-2">
+      <div><i class="fas fa-map-marker-alt text-amber-400 ml-1"></i> السلط، الأردن</div>
+      <div><i class="fas fa-phone text-amber-400 ml-1"></i> 0796667505</div>
+      <a href="https://instagram.com/waqar_fashion199" target="_blank" class="hover:text-pink-400"><i class="fab fa-instagram text-amber-400 ml-1"></i> @waqar_fashion199</a>
+    </div>
+  </div>
+
+  <!-- 3. Footer -->
+  <footer class="bg-[#08080a] border-t border-zinc-800/80 pt-12 pb-8 text-zinc-300 mt-auto">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        
+        <!-- Store Identity -->
+        <div>
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-lg font-bold">وَ</div>
+            <span class="text-2xl font-black gold-gradient-text">وَقّار</span>
+          </div>
+          <p class="text-sm text-zinc-400 mb-4 leading-relaxed">
+            "{{ settings.get('tagline', 'أناقتك تبدأ من وَقّار') }}"
+          </p>
+          <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+            متجر متخصص في أرقى الأزياء والملابس الرجالية في السلط والمملكة الأردنية الهاشمية. خامات فاخرة، تصاميم متقنة، ودفع عند الاستلام.
+          </p>
+          <div class="flex items-center gap-3">
+            <a href="https://instagram.com/waqar_fashion199" target="_blank" class="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300 hover:text-pink-400 hover:border-pink-500/40 transition">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="https://wa.me/{{ settings.get('whatsapp', '+962796667505')|replace('+', '')|replace(' ', '') }}" target="_blank" class="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300 hover:text-green-400 hover:border-green-500/40 transition">
+              <i class="fab fa-whatsapp"></i>
+            </a>
+            <a href="tel:{{ settings.get('phone', '0796667505') }}" class="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300 hover:text-amber-400 hover:border-amber-500/40 transition">
+              <i class="fas fa-phone-alt text-xs"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div>
+          <h4 class="text-sm font-bold text-amber-400 mb-4 tracking-wide">روابط سريعة</h4>
+          <ul class="flex flex-col gap-2.5 text-xs text-zinc-400">
+            <li><a href="{{ url_for('store.index') }}" class="hover:text-amber-300 transition">الرئيسية</a></li>
+            <li><a href="{{ url_for('store.shop') }}" class="hover:text-amber-300 transition">جميع الملابس الرجالية</a></li>
+            <li><a href="{{ url_for('store.shop', filter='new') }}" class="hover:text-amber-300 transition">وصل حديثاً</a></li>
+            <li><a href="{{ url_for('store.shop', filter='offer') }}" class="hover:text-amber-300 transition">عروض وَقّار</a></li>
+            <li><a href="{{ url_for('store.track_order') }}" class="hover:text-amber-300 transition">تتبع الطلب</a></li>
+            <li><a href="{{ url_for('store.about') }}" class="hover:text-amber-300 transition">من نحن</a></li>
+            <li><a href="{{ url_for('store.contact') }}" class="hover:text-amber-300 transition">تواصل معنا</a></li>
+          </ul>
+        </div>
+
+        <!-- Policies & Terms -->
+        <div>
+          <h4 class="text-sm font-bold text-amber-400 mb-4 tracking-wide">السياسات والشروط</h4>
+          <ul class="flex flex-col gap-2.5 text-xs text-zinc-400">
+            <li><a href="{{ url_for('store.returns') }}" class="hover:text-amber-300 transition">سياسة الاستبدال والاسترجاع</a></li>
+            <li><a href="{{ url_for('store.privacy') }}" class="hover:text-amber-300 transition">سياسة الخصوصية</a></li>
+            <li><a href="{{ url_for('store.terms') }}" class="hover:text-amber-300 transition">الشروط والأحكام</a></li>
+            <li><span class="text-zinc-500">طريقة الدفع: الدفع نقدًا عند الاستلام</span></li>
+            <li><span class="text-zinc-500">التوصيل: لجميع محافظات المملكة</span></li>
+          </ul>
+        </div>
+
+        <!-- Store Location & Contact -->
+        <div>
+          <h4 class="text-sm font-bold text-amber-400 mb-4 tracking-wide">موقعنا والتواصل</h4>
+          <div class="flex flex-col gap-3 text-xs text-zinc-400">
+            <div class="flex items-start gap-2">
+              <i class="fas fa-map-marker-alt text-amber-400 mt-0.5"></i>
+              <span>{{ settings.get('store_address', 'السلط، الأردن') }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <i class="fas fa-phone-alt text-amber-400"></i>
+              <a href="tel:{{ settings.get('phone', '0796667505') }}" class="hover:text-zinc-100 transition">{{ settings.get('phone', '0796667505') }}</a>
+            </div>
+            <div class="flex items-center gap-2">
+              <i class="fab fa-whatsapp text-green-400 text-sm"></i>
+              <a href="https://wa.me/{{ settings.get('whatsapp', '+962796667505')|replace('+', '')|replace(' ', '') }}" target="_blank" class="hover:text-zinc-100 transition">{{ settings.get('whatsapp', '+962796667505') }}</a>
+            </div>
+            <div class="flex items-center gap-2">
+              <i class="far fa-clock text-amber-400"></i>
+              <span>{{ settings.get('working_hours', 'يومياً من 10 ص حتى 11 م') }}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Copyright -->
+      <div class="border-t border-zinc-800/60 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 gap-4">
+        <div>
+          جميع الحقوق محفوظة لـ <span class="text-amber-400 font-semibold">متجر وَقّار للملابس الرجالية</span> &copy; {{ current_year }} - السلط، الأردن
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="{{ url_for('admin.login') }}" class="text-zinc-600 hover:text-amber-400 transition"><i class="fas fa-shield-alt ml-1"></i> الإدارة</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
+

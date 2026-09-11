@@ -1,0 +1,254 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;700;800;900&display=swap');
+
+:root {
+  --waqar-gold: #c5a059;
+  --waqar-gold-light: #dfc282;
+  --waqar-gold-dark: #9f7e34;
+  --waqar-dark: #0a0a0c;
+  --waqar-card: #121216;
+  --waqar-border: #22222a;
+  --waqar-text: #f4f4f5;
+  --waqar-muted: #a1a1aa;
+}
+
+* {
+  font-family: 'Tajawal', 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+  background-color: #0b0b0e;
+  color: #ededf0;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #0d0d11;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a35;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--waqar-gold);
+}
+
+/* Gold Gradient Accents */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #dfc282 0%, #c5a059 50%, #9f7e34 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #dfc282 0%, #c5a059 50%, #9f7e34 100%);
+}
+
+.gold-border {
+  border-color: rgba(197, 160, 89, 0.35);
+}
+
+.gold-border:hover {
+  border-color: rgba(197, 160, 89, 0.8);
+}
+
+/* Glow and Shadow Effects */
+.gold-glow {
+  box-shadow: 0 4px 20px rgba(197, 160, 89, 0.15);
+}
+
+.gold-glow-hover:hover {
+  box-shadow: 0 6px 25px rgba(197, 160, 89, 0.25);
+}
+
+/* Luxury Card */
+.waqar-card {
+  background-color: #121217;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  transition: all 0.25s ease-in-out;
+}
+
+.waqar-card:hover {
+  border-color: rgba(197, 160, 89, 0.4);
+  transform: translateY(-3px);
+}
+
+/* Image Zoom on hover */
+.product-img-container {
+  overflow: hidden;
+  position: relative;
+}
+
+.product-img-container img {
+  transition: transform 0.4s ease;
+}
+
+.product-card:hover .product-img-container img {
+  transform: scale(1.05);
+}
+
+/* Swatch Dots */
+.color-swatch-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Toast Notifications */
+#toast-container {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.waqar-toast {
+  pointer-events: auto;
+  min-width: 280px;
+  max-width: 380px;
+  padding: 12px 18px;
+  background: #181820;
+  border: 1px solid var(--waqar-gold);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.95rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: slideInLeft 0.3s ease forwards;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.waqar-toast.hide {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Mobile Sticky Bottom Nav */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: rgba(14, 14, 18, 0.96);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+/* Floating WhatsApp */
+.floating-whatsapp {
+  position: fixed;
+  bottom: 75px;
+  right: 20px;
+  z-index: 45;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #25D366;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  box-shadow: 0 4px 18px rgba(37, 211, 102, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.floating-whatsapp:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 25px rgba(37, 211, 102, 0.6);
+}
+
+@media (min-width: 768px) {
+  .floating-whatsapp {
+    bottom: 25px;
+  }
+}
+
+/* Drawer Transitions */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 90;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.drawer-backdrop.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.drawer-content {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  max-width: 420px;
+  background: #111116;
+  z-index: 100;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+  overflow-y: auto;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.drawer-content.active {
+  transform: translateX(0);
+}
+
+/* Order timeline */
+.timeline-step {
+  position: relative;
+  padding-bottom: 24px;
+}
+.timeline-step:last-child {
+  padding-bottom: 0;
+}
+.timeline-step::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  bottom: 0;
+  right: 15px;
+  width: 2px;
+  background: #27272a;
+}
+.timeline-step:last-child::before {
+  display: none;
+}
+.timeline-step.completed::before {
+  background: var(--waqar-gold);
+}
+

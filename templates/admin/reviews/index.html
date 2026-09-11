@@ -1,0 +1,96 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}إدارة تقييمات العملاء | لوحة تحكم وَقّار{% endblock %}
+{% block header_title %}مراجعة وتقييمات العملاء ({{ reviews|length }}){% endblock %}
+
+{% block admin_content %}
+<div class="space-y-6">
+  
+  <div class="bg-[#121217] border border-zinc-800 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-lg font-bold text-zinc-100">آراء وتقييمات المنتجات</h1>
+      <p class="text-xs text-zinc-400">راجع التقييمات واعتمدها لتظهر للزوار في صفحات المنتجات أو ارفضها</p>
+    </div>
+  </div>
+
+  <div class="bg-[#121217] border border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+    {% if reviews %}
+      <div class="overflow-x-auto text-xs">
+        <table class="w-full text-right border-collapse">
+          <thead>
+            <tr class="bg-zinc-900/80 text-zinc-400 border-b border-zinc-800">
+              <th class="p-3.5 font-bold">المنتج</th>
+              <th class="p-3.5 font-bold">اسم العميل</th>
+              <th class="p-3.5 font-bold">التقييم</th>
+              <th class="p-3.5 font-bold">التعليق</th>
+              <th class="p-3.5 font-bold text-center">حالة النشر</th>
+              <th class="p-3.5 font-bold text-left">إجراءات</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-800/60 text-zinc-300">
+            {% for r in reviews %}
+              <tr class="hover:bg-zinc-800/30 transition">
+                <td class="p-3.5 flex items-center gap-3">
+                  <img src="{{ r.product_image or url_for('static', filename='images/placeholder.svg') }}" class="w-9 h-11 object-cover rounded bg-zinc-900">
+                  <a href="{{ url_for('store.product_detail', slug=r.product_slug) }}" target="_blank" class="font-bold text-zinc-100 hover:text-amber-400">
+                    {{ r.product_name }}
+                  </a>
+                </td>
+
+                <td class="p-3.5 font-semibold text-zinc-200">{{ r.customer_name }}</td>
+
+                <td class="p-3.5 text-amber-400">
+                  {% for _ in range(r.rating) %}★{% endfor %}
+                </td>
+
+                <td class="p-3.5 max-w-xs text-zinc-300 leading-relaxed">
+                  {{ r.comment }}
+                </td>
+
+                <td class="p-3.5 text-center">
+                  {% if r.is_approved %}
+                    <span class="bg-green-950/60 text-green-300 border border-green-500/40 px-2 py-0.5 rounded text-[10px] font-bold">معتمد ومنشور</span>
+                  {% else %}
+                    <span class="bg-amber-950/60 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded text-[10px] font-bold">بانتظار المراجعة</span>
+                  {% endif %}
+                </td>
+
+                <td class="p-3.5 text-left">
+                  <div class="flex items-center justify-end gap-2">
+                    {% if not r.is_approved %}
+                      <form action="{{ url_for('admin.review_approve', review_id=r.id) }}" method="POST" class="inline">
+                        <button type="submit" class="bg-green-950/60 hover:bg-green-900 text-green-300 border border-green-500/40 px-2.5 py-1 rounded text-[11px] font-bold transition">
+                          اعتماد ونشر
+                        </button>
+                      </form>
+                    {% else %}
+                      <form action="{{ url_for('admin.review_reject', review_id=r.id) }}" method="POST" class="inline">
+                        <button type="submit" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 border border-zinc-700 px-2.5 py-1 rounded text-[11px] font-bold transition">
+                          إخفاء
+                        </button>
+                      </form>
+                    {% endif %}
+
+                    <form action="{{ url_for('admin.review_delete', review_id=r.id) }}" method="POST" onsubmit="return confirm('حذف هذا التقييم؟');" class="inline">
+                      <button type="submit" class="p-1 text-red-400 hover:text-red-300 transition" title="حذف">
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-12 text-center text-zinc-500 text-xs">
+        <i class="fas fa-star-half-alt text-3xl mb-3 block"></i>
+        <span>لا توجد تقييمات مسجلة حتى الآن.</span>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
